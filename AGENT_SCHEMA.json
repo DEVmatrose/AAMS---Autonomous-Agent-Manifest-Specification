@@ -1,0 +1,498 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/aams-spec/aams/schema/v1.0/AGENT_SCHEMA.json",
+  "title": "AAMS — Autonomous Agent Manifest Specification",
+  "description": "JSON Schema for validating AGENT.json files (Version 1.0, local-first).",
+  "version": "1.0.0",
+  "type": "object",
+  "required": ["_spec", "identity", "runtime", "skills", "permissions", "memory", "session", "tools", "workspace"],
+
+  "properties": {
+
+    "_spec": {
+      "type": "string",
+      "const": "AAMS/1.0",
+      "description": "Required field. Identifies the standard and version."
+    },
+
+    "identity": {
+      "type": "object",
+      "required": ["name", "version", "type"],
+      "properties": {
+        "name":        { "type": "string", "minLength": 1 },
+        "version":     { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+        "description": { "type": "string" },
+        "type": {
+          "type": "string",
+          "enum": ["assistant", "worker", "orchestrator", "gateway", "monitor"]
+        },
+        "author":      { "type": "string" },
+        "license":     { "type": "string" },
+        "created":     { "type": "string", "format": "date" },
+        "tags":        { "type": "array", "items": { "type": "string" } }
+      },
+      "patternProperties": { "^_": true },
+      "additionalProperties": false
+    },
+
+    "runtime": {
+      "type": "object",
+      "required": ["model", "provider", "local"],
+      "properties": {
+        "model":               { "type": "string" },
+        "provider": {
+          "type": "string",
+          "enum": ["ollama", "lm-studio", "llamacpp", "openai", "anthropic", "custom"]
+        },
+        "endpoint":            { "type": "string", "format": "uri" },
+        "local":               { "type": "boolean" },
+        "context_window":      { "type": "integer", "minimum": 512 },
+        "temperature":         { "type": "number", "minimum": 0, "maximum": 2 },
+        "max_tokens":          { "type": "integer", "minimum": 1 },
+        "system_prompt_file":  { "type": "string" }
+      },
+      "patternProperties": { "^_": true },
+      "additionalProperties": false
+    },
+
+    "skills": {
+      "type": "object",
+      "required": ["capabilities"],
+      "properties": {
+        "capabilities": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 0,
+          "uniqueItems": true
+        },
+        "custom_skills": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "description"],
+            "properties": {
+              "name":          { "type": "string" },
+              "description":   { "type": "string" },
+              "input_schema":  { "type": "object" },
+              "output_schema": { "type": "object" }
+            }
+          }
+        }
+      },
+      "patternProperties": { "^_": true },
+      "additionalProperties": false
+    },
+
+    "permissions": {
+      "type": "object",
+      "required": ["filesystem", "network", "process", "data"],
+      "properties": {
+        "filesystem": {
+          "type": "object",
+          "properties": {
+            "read":      { "type": "array", "items": { "type": "string" } },
+            "write":     { "type": "array", "items": { "type": "string" } },
+            "forbidden": { "type": "array", "items": { "type": "string" } }
+          },
+          "patternProperties": { "^_": true },
+          "additionalProperties": false
+        },
+        "network": {
+          "type": "object",
+          "properties": {
+            "allowed":   { "type": "array", "items": { "type": "string" } },
+            "forbidden": { "type": "array", "items": { "type": "string" } }
+          },
+          "patternProperties": { "^_": true },
+          "additionalProperties": false
+        },
+        "process": {
+          "type": "object",
+          "properties": {
+            "shell_execution": { "type": "boolean" },
+            "sudo":            { "type": "boolean" },
+            "spawn_agents":    { "type": "boolean" }
+          },
+          "patternProperties": { "^_": true },
+          "additionalProperties": false
+        },
+        "data": {
+          "type": "object",
+          "properties": {
+            "can_read_secrets":  { "type": "boolean" },
+            "can_exfiltrate":    { "type": "boolean" },
+            "pii_handling": {
+              "type": "string",
+              "enum": ["forbidden", "anonymized", "allowed"]
+            },
+            "env_access": {
+              "type": "string",
+              "enum": ["none", "read_non_secret", "read_all"],
+              "description": "Access to environment variables. 'none' = no access, 'read_non_secret' = non-sensitive variables only, 'read_all' = full .env access."
+            }
+          },
+          "patternProperties": { "^_": true },
+          "additionalProperties": false
+        }
+      },
+      "patternProperties": { "^_": true },
+      "additionalProperties": false
+    },
+
+    "memory": {
+      "type": "object",
+      "required": ["short_term", "long_term"],
+      "properties": {
+        "short_term": {
+          "type": "object",
+          "required": ["backend"],
+          "properties": {
+            "backend":      { "type": "string", "enum": ["in-memory", "redis", "sqlite"] },
+            "ttl_seconds":  { "type": "integer", "minimum": 0 }
+          },
+          "patternProperties": { "^_": true },
+          "additionalProperties": false
+        },
+        "long_term": {
+          "type": "object",
+          "required": ["backend"],
+          "properties": {
+            "backend": { "type": "string", "enum": ["none", "lancedb", "chroma", "sqlite", "pgvector"] },
+            "path":    { "type": "string" }
+          },
+          "patternProperties": { "^_": true },
+          "additionalProperties": false
+        },
+        "session": {
+          "type": "object",
+          "properties": {
+            "persist": { "type": "boolean" },
+            "path":    { "type": "string" }
+          },
+          "patternProperties": { "^_": true },
+          "additionalProperties": false
+        }
+      },
+      "patternProperties": { "^_": true },
+      "additionalProperties": false
+    },
+
+    "session": {
+      "type": "object",
+      "required": ["log_actions"],
+      "properties": {
+        "create_workpaper":   { "type": "boolean" },
+        "workpaper_path":     {
+          "type": "string",
+          "pattern": ".*\\{date\\}.*\\{agent\\}.*",
+          "description": "Path template for auto-created workpapers. Must contain {date} and {agent} placeholders. Used as fallback when no topic is known; see workspace.workpaper_rules.naming_pattern for topic-based naming."
+        },
+        "log_actions":        { "type": "boolean" },
+        "log_path":           { "type": "string" },
+        "log_level": {
+          "type": "string",
+          "enum": ["debug", "info", "warn", "error"]
+        },
+        "audit_trail":        { "type": "boolean" }
+      },
+      "patternProperties": { "^_": true },
+      "additionalProperties": false
+    },
+
+    "tools": {
+      "type": "object",
+      "required": ["enabled"],
+      "properties": {
+        "enabled": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "registry": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "type", "description"],
+            "properties": {
+              "name":            { "type": "string" },
+              "type":            { "type": "string", "enum": ["http", "mcp", "cli", "python", "shell"] },
+              "endpoint":        { "type": "string" },
+              "auth":            { "type": "string", "enum": ["none", "bearer", "api_key", "basic"] },
+              "description":     { "type": "string" },
+              "allowed_methods": { "type": "array", "items": { "type": "string" } },
+              "timeout_seconds": { "type": "integer", "minimum": 1 }
+            },
+            "allOf": [
+              {
+                "if": { "properties": { "type": { "enum": ["http", "cli", "python", "shell"] } } },
+                "then": { "required": ["endpoint"] }
+              }
+            ],
+            "patternProperties": { "^_": true },
+            "additionalProperties": false
+          }
+        }
+      },
+      "patternProperties": { "^_": true },
+      "additionalProperties": false
+    },
+
+    "governance": {
+      "type": "object",
+      "properties": {
+        "spec_version":          { "type": "string" },
+        "spec_url":              { "type": "string", "format": "uri" },
+        "validated_with":        { "type": "string" },
+        "last_reviewed":         { "type": "string", "format": "date" },
+        "review_interval_days":  { "type": "integer", "minimum": 1 },
+        "contact":               { "type": "string" }
+      },
+      "patternProperties": { "^_": true },
+      "additionalProperties": false
+    },
+
+    "metadata": {
+      "type": "object",
+      "description": "Free-form field for provider-specific extensions, experimental features, and project-specific data. No fixed schema — anything allowed.",
+      "additionalProperties": true
+    },
+
+    "workspace": {
+      "type": "object",
+      "required": ["root", "entry_point", "auto_create", "structure"],
+      "properties": {
+        "root": {
+          "type": "string",
+          "description": "Root directory of the workspace structure created by the agent."
+        },
+        "entry_point": {
+          "type": "string",
+          "description": "File the agent must read first to obtain project context."
+        },
+        "auto_create": {
+          "type": "boolean",
+          "description": "If true (default), the agent MUST create the entire structure automatically if missing. If false, the agent works with existing structure only (read-only mode)."
+        },
+        "structure": {
+          "type": "object",
+          "description": "Folder structure that the agent creates.",
+          "properties": {
+            "whitepapers":       { "type": "string", "description": "Long-term documentation (architecture, decisions, standards)." },
+            "workpapers":        { "type": "string", "description": "Active work sessions." },
+            "workpapers_closed": { "type": "string", "description": "Completed work sessions (archive)." },
+            "guidelines":        { "type": "string", "description": "Coding standards, architecture rules, conventions." },
+            "tools":             { "type": "string", "description": "Project-specific helper scripts and tools." },
+            "database":          { "type": "string", "description": "Migrations, scripts, schema definitions." },
+            "memory":            { "type": "string", "description": "LTM vector store (e.g. ChromaDB)." }
+          },
+          "patternProperties": { "^_": true },
+          "additionalProperties": { "type": "string" }
+        },
+        "onboarding": {
+          "type": "object",
+          "description": "Steps the agent executes during initial workspace setup.",
+          "properties": {
+            "steps": {
+              "type": "array",
+              "description": "Ordered list of setup actions.",
+              "items": {
+                "type": "object",
+                "required": ["action", "description"],
+                "properties": {
+                  "action": {
+                    "type": "string",
+                    "enum": ["read_entry_point", "create_structure", "scan_repository", "index_ltm", "create_entry_point", "create_guidelines", "create_first_workpaper", "custom"],
+                    "description": "Type of action."
+                  },
+                  "description": { "type": "string" },
+                  "target": { "type": "string", "description": "Target path or file for the action." },
+                  "condition": { "type": "string", "enum": ["always", "file_missing", "directory_empty"], "description": "Condition for execution (e.g. 'file_missing', 'always'). Default: 'always'." },
+                  "output_format": {
+                    "type": "object",
+                    "description": "Defines what results this step produces. Especially relevant for scan_repository.",
+                    "properties": {
+                      "sections": {
+                        "type": "array",
+                        "items": { "type": "string" },
+                        "description": "Required sections in scan results."
+                      },
+                      "write_to": {
+                        "type": "string",
+                        "description": "Where the result is written (e.g. first workpaper, READ-AGENT.md)."
+                      }
+                    },
+                    "patternProperties": { "^_": true },
+                    "additionalProperties": false
+                  }
+                },
+                "patternProperties": { "^_": true },
+                "additionalProperties": false
+              }
+            }
+          },
+          "patternProperties": { "^_": true },
+          "additionalProperties": false
+        },
+        "workpaper_rules": {
+          "type": "object",
+          "description": "Rules for workpaper creation and closing.",
+          "properties": {
+            "naming_pattern": {
+              "type": "string",
+              "description": "Filename template with placeholders like {date}, {agent}, {topic}."
+            },
+            "required_sections": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Required sections in every workpaper (e.g. 'Session Scope', 'File Protocol')."
+            },
+            "file_tracking": {
+              "type": "object",
+              "description": "File protocol rules: what must be recorded in the workpaper.",
+              "properties": {
+                "track_created":    { "type": "boolean", "description": "Record newly created files." },
+                "track_modified":   { "type": "boolean", "description": "Record modified files." },
+                "track_moved":      { "type": "boolean", "description": "Record moved files (from, to, why)." },
+                "track_archived":   { "type": "boolean", "description": "Record archived files." },
+                "track_deleted":    { "type": "boolean", "description": "Record deleted files." },
+                "track_leftover":   { "type": "boolean", "description": "Document known leftovers (why not cleaned up, who is responsible)." },
+                "track_during_session": { "type": "boolean", "description": "Maintain continuously, not just at the end." }
+              },
+              "patternProperties": { "^_": true },
+              "additionalProperties": false
+            },
+            "closing_checklist": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Checklist that must be completed before closing a workpaper."
+            },
+            "on_close": {
+              "type": "string",
+              "enum": ["move_to_closed", "archive", "delete"],
+              "description": "What happens to the workpaper after closing."
+            },
+            "template_file": {
+              "type": "string",
+              "description": "Path to a Markdown template for new workpapers (full version)."
+            },
+            "template_file_quick": {
+              "type": "string",
+              "description": "Path to a short template for minor fixes and small tasks."
+            }
+          },
+          "patternProperties": { "^_": true },
+          "additionalProperties": false
+        },
+        "code_hygiene": {
+          "type": "object",
+          "description": "Rules for clean code and clean repos during agent work.",
+          "properties": {
+            "forbidden_patterns": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Filename patterns that must not be in the repo (e.g. 'test-*', 'debug-*', 'temp-*')."
+            },
+            "no_commented_code": {
+              "type": "boolean",
+              "description": "No commented-out code blocks without explanation."
+            },
+            "no_todo_remnants": {
+              "type": "boolean",
+              "description": "No forgotten TODO/FIXME/HACK markers without associated workpaper entry."
+            },
+            "abandoned_branches": {
+              "type": "string",
+              "enum": ["mark_and_document", "delete_immediately", "move_to_archive"],
+              "description": "What happens to discarded work branches."
+            },
+            "verify_deletions": {
+              "type": "boolean",
+              "description": "Deleted files must be marked as verified in the file protocol."
+            },
+            "cleanup_leftovers": {
+              "type": "boolean",
+              "description": "Known leftovers from previous sessions must be named and scheduled."
+            }
+          },
+          "patternProperties": { "^_": true },
+          "additionalProperties": false
+        },
+        "secrets_policy": {
+          "type": "object",
+          "description": "Rules for handling secrets, credentials, and sensitive data.",
+          "properties": {
+            "never_in_workpapers": {
+              "type": "boolean",
+              "description": "Never put passwords, tokens, or API keys in plain text in workpapers."
+            },
+            "never_in_code": {
+              "type": "boolean",
+              "description": "Never hardcode secrets in code."
+            },
+            "reference_method": {
+              "type": "string",
+              "enum": ["env_file", "secret_manager", "vault", "custom"],
+              "description": "How secrets are referenced instead of written."
+            },
+            "env_example_required": {
+              "type": "boolean",
+              "description": "When adding new environment variables, .env.example must be updated."
+            }
+          },
+          "patternProperties": { "^_": true },
+          "additionalProperties": false
+        },
+        "ltm_triggers": {
+          "type": "array",
+          "description": "Rules that define WHEN long-term memory must be used.",
+          "items": {
+            "type": "object",
+            "required": ["event", "action", "priority"],
+            "properties": {
+              "event": {
+                "type": "string",
+                "description": "Trigger event (e.g. 'new_workpaper', 'session_start', 'context_limit_reached')."
+              },
+              "action": {
+                "type": "string",
+                "enum": ["query", "ingest", "query_and_ingest"],
+                "description": "What happens with the LTM."
+              },
+              "priority": {
+                "type": "string",
+                "enum": ["mandatory", "recommended", "optional"],
+                "description": "Binding level of the trigger."
+              },
+              "description": { "type": "string" }
+            },
+            "patternProperties": { "^_": true },
+            "additionalProperties": false
+          }
+        },
+        "gitignore_patterns": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Patterns the agent should add to .gitignore (e.g. LTM database)."
+        }
+      },
+      "if": {
+        "properties": {
+          "workpaper_rules": {
+            "properties": { "on_close": { "const": "move_to_closed" } },
+            "required": ["on_close"]
+          }
+        },
+        "required": ["workpaper_rules"]
+      },
+      "then": {
+        "properties": {
+          "structure": { "required": ["workpapers_closed"] }
+        }
+      },
+      "patternProperties": { "^_": true },
+      "additionalProperties": false
+    }
+  },
+
+  "patternProperties": { "^_": true },
+  "additionalProperties": false
+}

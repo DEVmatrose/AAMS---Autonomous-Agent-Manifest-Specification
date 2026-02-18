@@ -1,0 +1,353 @@
+{
+  "_spec": "AAMS/1.0",
+  "_doc": "Autonomous Agent Manifest Specification — https://github.com/aams-spec/aams",
+  "_focus": "local-first",
+
+  "identity": {
+    "_doc": "Unique identity of the agent. Required fields: name, version, type.",
+    "name": "my-agent",
+    "version": "1.0.0",
+    "description": "Brief description of the agent and its purpose.",
+    "type": "assistant",
+    "_type_enum": ["assistant", "worker", "orchestrator", "gateway", "monitor"],
+    "author": "Your Name or Org",
+    "license": "MIT",
+    "created": "2026-02-18",
+    "tags": ["local", "automation", "example"]
+  },
+
+  "runtime": {
+    "_doc": "Technical runtime configuration. Local models preferred (local-first).",
+    "model": "mistral-nemo",
+    "provider": "ollama",
+    "_provider_enum": ["ollama", "lm-studio", "llamacpp", "openai", "anthropic", "custom"],
+    "endpoint": "http://localhost:11434",
+    "local": true,
+    "context_window": 8192,
+    "temperature": 0.7,
+    "max_tokens": 2048,
+    "system_prompt_file": "./prompts/system.md"
+  },
+
+  "skills": {
+    "_doc": "Declared capabilities of the agent. Used for self-description and routing in mesh.",
+    "capabilities": [
+      "code_generation",
+      "documentation",
+      "file_management",
+      "security_audit"
+    ],
+    "_note": "shell_execution is NOT listed here because permissions.process.shell_execution is false. A capability without the matching permission is effectively disabled (see SPEC: Permissions vs. Capabilities).",
+    "_capability_registry": "https://github.com/aams-spec/aams/blob/main/registry/capabilities.md",
+    "custom_skills": [
+      {
+        "name": "slack_notify",
+        "description": "Sends status messages to a Slack channel (e.g. after deployments or session closings).",
+        "input_schema": { "type": "object", "properties": { "channel": { "type": "string" }, "message": { "type": "string" } } },
+        "output_schema": { "type": "object", "properties": { "sent": { "type": "boolean" }, "timestamp": { "type": "string" } } }
+      }
+    ]
+  },
+
+  "permissions": {
+    "_doc": "Explicit permissions and prohibitions. Everything not explicitly permitted is forbidden.",
+    "filesystem": {
+      "read": ["./"],
+      "write": ["./WORKING", "./READ-AGENT.md", "./.gitignore"],
+      "forbidden": ["/etc", "/sys", "/root", "~/.ssh"]
+    },
+    "network": {
+      "allowed": ["localhost", "192.168.0.0/16"],
+      "forbidden": ["0.0.0.0/0"],
+      "_note": "local_only recommended for local agents"
+    },
+    "process": {
+      "shell_execution": false,
+      "sudo": false,
+      "spawn_agents": false
+    },
+    "data": {
+      "can_read_secrets": false,
+      "can_exfiltrate": false,
+      "pii_handling": "forbidden",
+      "env_access": "read_non_secret",
+      "_env_access_enum": ["none", "read_non_secret", "read_all"]
+    }
+  },
+
+  "memory": {
+    "_doc": "Persistence and storage strategy of the agent. Paths are derived from workspace.structure (Single Source of Truth).",
+    "short_term": {
+      "backend": "in-memory",
+      "_backend_enum": ["in-memory", "redis", "sqlite"],
+      "ttl_seconds": 3600
+    },
+    "long_term": {
+      "backend": "chroma",
+      "_backend_enum": ["none", "lancedb", "chroma", "sqlite", "pgvector"],
+      "path": "./WORKING/AGENT-MEMORY",
+      "_ref": "workspace.structure.memory"
+    },
+    "session": {
+      "persist": true,
+      "path": "./WORKING/WORKPAPER/",
+      "_ref": "workspace.structure.workpapers"
+    }
+  },
+
+  "session": {
+    "_doc": "Session logging and audit protocol. workpaper_path uses workspace.structure.workpapers as base.",
+    "create_workpaper": true,
+    "workpaper_path": "./WORKING/WORKPAPER/{date}-{agent}-session.md",
+    "_workpaper_path_doc": "Fallback path when no topic is known (e.g. first session, onboarding). For topic-specific workpapers, use workspace.workpaper_rules.naming_pattern instead ({date}-{agent}-{topic}.md).",
+    "_workpaper_path_ref": "workspace.structure.workpapers",
+    "log_actions": true,
+    "log_path": "./WORKING/logs/",
+    "log_level": "info",
+    "_log_level_enum": ["debug", "info", "warn", "error"],
+    "audit_trail": true
+  },
+
+  "tools": {
+    "_doc": "External tools and API bindings the agent is allowed to use.",
+    "enabled": ["project_search"],
+    "registry": [
+      {
+        "name": "project_search",
+        "type": "http",
+        "_type_enum": ["http", "mcp", "cli", "python", "shell"],
+        "endpoint": "http://localhost:8080/search",
+        "auth": "api_key",
+        "_auth_enum": ["none", "bearer", "api_key", "basic"],
+        "description": "Semantic search over project documentation. API key is read from environment variable SEARCH_API_KEY.",
+        "allowed_methods": ["POST"],
+        "timeout_seconds": 15
+      },
+      {
+        "name": "local_linter",
+        "type": "cli",
+        "endpoint": "./node_modules/.bin/eslint",
+        "auth": "none",
+        "description": "Local linter for code quality checks.",
+        "allowed_methods": ["GET"],
+        "timeout_seconds": 60
+      }
+    ]
+  },
+
+  "workspace": {
+    "_doc": "Complete work instructions. The agent clones a repo, finds AGENT.json, and sets itself up according to these rules.",
+
+    "root": "./WORKING",
+    "entry_point": "./READ-AGENT.md",
+    "auto_create": true,
+    "_auto_create_doc": "Set to false for read-only setups where the agent should not create or modify folders.",
+
+    "structure": {
+      "_doc": "Folders the agent creates automatically. Each path relative to project root.",
+      "whitepapers": "./WORKING/docs",
+      "workpapers": "./WORKING/WORKPAPER",
+      "workpapers_closed": "./WORKING/WORKPAPER/close",
+      "guidelines": "./WORKING/GUIDELINES",
+      "tools": "./WORKING/TOOLS",
+      "database": "./WORKING/DATABASE",
+      "memory": "./WORKING/AGENT-MEMORY"
+    },
+
+    "onboarding": {
+      "_doc": "Steps the agent executes during initial setup — in this order.",
+      "steps": [
+        {
+          "action": "read_entry_point",
+          "description": "Read READ-AGENT.md — provides project context, architecture, priorities.",
+          "target": "./READ-AGENT.md"
+        },
+        {
+          "action": "create_structure",
+          "description": "Create all folders from workspace.structure if they don't exist."
+        },
+        {
+          "action": "scan_repository",
+          "description": "Scan entire repository — capture files, languages, dependencies, existing documentation.",
+          "output_format": {
+            "sections": [
+              "File inventory (directory tree, file count by type)",
+              "Languages and frameworks (detected technologies)",
+              "Dependencies (package.json, requirements.txt, etc.)",
+              "Existing documentation (READMEs, wikis, comments)",
+              "Build/run commands (how to start the project)",
+              "Open TODOs/FIXMEs in code",
+              "Potential issues (missing .env, outdated deps)"
+            ],
+            "write_to": "first_workpaper"
+          }
+        },
+        {
+          "action": "create_entry_point",
+          "description": "Create READ-AGENT.md if not present — project structure, core architecture, start commands, reading list.",
+          "target": "./READ-AGENT.md",
+          "condition": "file_missing",
+          "_template": "./templates/read-agent-template.md"
+        },
+        {
+          "action": "create_guidelines",
+          "description": "Derive coding standards and architecture rules from the project and document in GUIDELINES/.",
+          "target": "./WORKING/GUIDELINES"
+        },
+        {
+          "action": "index_ltm",
+          "description": "Index all documentation (whitepapers, READMEs, code comments) into long-term memory.",
+          "target": "./WORKING/AGENT-MEMORY"
+        },
+        {
+          "action": "create_first_workpaper",
+          "description": "Create first workpaper: onboarding protocol with repository scan results.",
+          "target": "./WORKING/WORKPAPER"
+        }
+      ]
+    },
+
+    "workpaper_rules": {
+      "_doc": "Rules for how workpapers are written and closed. Based on real-world experience from 60+ sessions.",
+      "naming_pattern": "{date}-{agent}-{topic}.md",
+      "template_file": "./templates/workpaper-template.md",
+      "template_file_quick": "./templates/workpaper-template-quick.md",
+      "required_sections": [
+        "Session Scope",
+        "Context from previous sessions",
+        "Goal of this session (one sentence)",
+        "Affected areas",
+        "Session Overview (starting situation + approach)",
+        "Results",
+        "File Protocol (created/modified/moved/archived/deleted/leftovers)",
+        "Decisions and rationale",
+        "Next Steps (concrete: who, when)",
+        "Session Closing Checklist"
+      ],
+      "file_tracking": {
+        "_doc": "File protocol — the heart of session hygiene. Without it, nobody knows what happened.",
+        "track_created": true,
+        "track_modified": true,
+        "track_moved": true,
+        "track_archived": true,
+        "track_deleted": true,
+        "track_leftover": true,
+        "track_during_session": true
+      },
+      "closing_checklist": [
+        "File protocol complete (created/modified/moved/archived/deleted)?",
+        "No temporary test files in repo (test-*, debug-*, temp-*)?",
+        "No commented-out code blocks without explanation?",
+        "No secrets/passwords/tokens in plain text in workpaper?",
+        ".env.example updated if new environment variables?",
+        "Relevant whitepapers checked for currency?",
+        "Architecture decisions noted in corresponding whitepaper?",
+        "Discarded work branches explicitly marked as ABANDONED?",
+        "Next steps are concretely formulated (not 'sometime')?",
+        "Cleanup tasks for next session named?",
+        "LTM re-ingest performed?"
+      ],
+      "on_close": "move_to_closed"
+    },
+
+    "code_hygiene": {
+      "_doc": "Rules for clean code. Problem from practice: agents solve tasks well but don't clean up.",
+      "forbidden_patterns": [
+        "test-*",
+        "debug-*",
+        "temp-*",
+        "*.tmp",
+        "*.bak"
+      ],
+      "no_commented_code": true,
+      "no_todo_remnants": true,
+      "abandoned_branches": "move_to_archive",
+      "verify_deletions": true,
+      "cleanup_leftovers": true
+    },
+
+    "secrets_policy": {
+      "_doc": "Workpapers end up as context in AI prompts. Everything in them is potentially accessible in plain text.",
+      "never_in_workpapers": true,
+      "never_in_code": true,
+      "reference_method": "env_file",
+      "env_example_required": true
+    },
+
+    "ltm_triggers": [
+      {
+        "event": "new_workpaper",
+        "action": "query",
+        "priority": "mandatory",
+        "description": "Before starting a new work session: load context from LTM."
+      },
+      {
+        "event": "session_start",
+        "action": "query",
+        "priority": "mandatory",
+        "description": "On every new chat: search session topic in LTM."
+      },
+      {
+        "event": "context_limit_reached",
+        "action": "query_and_ingest",
+        "priority": "mandatory",
+        "description": "Chat context limit reached: ingest, then query in new chat."
+      },
+      {
+        "event": "workpaper_closed",
+        "action": "ingest",
+        "priority": "mandatory",
+        "description": "Workpaper closed: ingest BEFORE moving to close/."
+      },
+      {
+        "event": "documentation_changed",
+        "action": "ingest",
+        "priority": "mandatory",
+        "description": "Whitepapers or workpapers changed: re-ingest at session end."
+      },
+      {
+        "event": "files_added_or_removed",
+        "action": "ingest",
+        "priority": "mandatory",
+        "description": "Files added or deleted: re-ingest."
+      },
+      {
+        "event": "code_changes",
+        "action": "query",
+        "priority": "recommended",
+        "description": "On code changes: check standards and architecture patterns in LTM."
+      },
+      {
+        "event": "new_dependency",
+        "action": "ingest",
+        "priority": "recommended",
+        "description": "New package installed: ingest if documentation-relevant."
+      }
+    ],
+
+    "gitignore_patterns": [
+      "WORKING/AGENT-MEMORY/",
+      "WORKING/WORKPAPER/*.tmp"
+    ]
+  },
+
+  "governance": {
+    "_doc": "Governance and compliance metadata.",
+    "spec_version": "1.0",
+    "spec_url": "https://github.com/aams-spec/aams",
+    "validated_with": "aams-validator",
+    "last_reviewed": "2026-02-18",
+    "review_interval_days": 90,
+    "contact": "maintainer@example.com"
+  },
+
+  "metadata": {
+    "_doc": "Free-form field for provider-specific extensions and project-specific data. No fixed schema.",
+    "project_category": "web-application",
+    "team_size": 3,
+    "custom_integrations": {
+      "ci_cd": "github-actions",
+      "monitoring": "grafana"
+    }
+  }
+}
