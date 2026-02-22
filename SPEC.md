@@ -320,6 +320,7 @@ Full registry: `./registry/capabilities.md` — included in this repository. See
 - `read` — allowed read paths
 - `write` — allowed write paths
 - `forbidden` — explicitly forbidden paths (overrides `read`/`write`)
+- `restricted_write` — paths the agent may only modify **with explicit user confirmation** (e.g. `.gitignore`). Overrides `write`. Any write to these paths requires approval before execution.
 
 #### `network`
 - `allowed` — CIDR ranges or hostnames
@@ -785,16 +786,19 @@ Defines **what** to scan for before writing any workpaper, whitepaper, or docume
 
 Without mandatory triggers, LTM gets forgotten. Therefore AAMS defines explicit triggers:
 
-| Event                    | Action            | Priority    | Description |
-|--------------------------|-------------------|-------------|-------------|
-| `new_workpaper`          | `query`           | mandatory   | Load context from LTM before new work |
-| `session_start`          | `query`           | mandatory   | Search session topic in LTM |
-| `context_limit_reached`  | `query_and_ingest`| mandatory   | Ingest, then query in new chat |
-| `workpaper_closed`       | `ingest`          | mandatory   | Ingest BEFORE moving to close/ |
-| `documentation_changed`  | `ingest`          | mandatory   | Re-ingest at session end |
-| `files_added_or_removed` | `ingest`          | mandatory   | Re-ingest on file changes |
-| `code_changes`           | `query`           | recommended | Check standards and patterns |
-| `new_dependency`         | `ingest`          | recommended | Ingest if documentation-relevant |
+| Event                        | Action              | Priority    | Description |
+|------------------------------|---------------------|-------------|-------------|
+| `ltm_index_threshold_warning`| `notify_developer`  | mandatory   | LTM audit log approaching limit (e.g. 90 entries), no vector store found. Agent alerts developer to install vector store. |
+| `ltm_index_threshold_exceeded`| `load_last_n_only` | mandatory   | LTM audit log exceeds limit (e.g. 100) with no vector store. Agent loads only last N entries and states this at session start. Fallback mode. |
+| `new_workpaper`              | `query`             | mandatory   | Load context from LTM before new work |
+| `session_start`              | `query`             | mandatory   | Search session topic in LTM |
+| `context_limit_reached`      | `query_and_ingest`  | mandatory   | Ingest, then query in new chat |
+| `workpaper_closed`           | `ingest`            | mandatory   | Ingest BEFORE moving to close/ |
+| `workpaper_pre_save`         | `scan_secrets`      | mandatory   | Scan workpaper content for secrets before writing. Block on match (`on_match: block_and_alert`). Last guardrail before Git. |
+| `documentation_changed`      | `ingest`            | mandatory   | Re-ingest at session end |
+| `files_added_or_removed`     | `ingest`            | mandatory   | Re-ingest on file changes |
+| `code_changes`               | `query`             | recommended | Check standards and patterns |
+| `new_dependency`             | `ingest`            | recommended | Ingest if documentation-relevant |
 
 Priorities: `mandatory` = MUST, `recommended` = SHOULD, `optional` = MAY.
 

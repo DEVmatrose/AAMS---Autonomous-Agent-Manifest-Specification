@@ -104,9 +104,14 @@
         "filesystem": {
           "type": "object",
           "properties": {
-            "read":      { "type": "array", "items": { "type": "string" } },
-            "write":     { "type": "array", "items": { "type": "string" } },
-            "forbidden": { "type": "array", "items": { "type": "string" } }
+            "read":             { "type": "array", "items": { "type": "string" } },
+            "write":            { "type": "array", "items": { "type": "string" } },
+            "forbidden":        { "type": "array", "items": { "type": "string" } },
+            "restricted_write": {
+              "type": "array",
+              "items": { "type": "string" },
+              "description": "Files the agent may only modify with explicit user confirmation (e.g. .gitignore). Overrides 'write'. Requires user approval before each write."
+            }
           },
           "patternProperties": { "^_": true },
           "additionalProperties": false
@@ -504,13 +509,26 @@
               },
               "action": {
                 "type": "string",
-                "enum": ["query", "ingest", "query_and_ingest", "scan_secrets"],
-                "description": "What happens with the LTM or security scan."
+                "enum": ["query", "ingest", "query_and_ingest", "scan_secrets", "notify_developer", "load_last_n_only"],
+                "description": "What happens. 'notify_developer' = alert that LTM threshold is approaching. 'load_last_n_only' = fallback when no vector store is present and audit log exceeds threshold."
               },
               "priority": {
                 "type": "string",
                 "enum": ["mandatory", "recommended", "optional"],
                 "description": "Binding level of the trigger."
+              },
+              "threshold": {
+                "type": "integer",
+                "description": "Entry count threshold that triggers this rule (used with notify_developer and load_last_n_only)."
+              },
+              "load_last_n": {
+                "type": "integer",
+                "description": "Number of most recent LTM entries to load when full index is too large (used with load_last_n_only)."
+              },
+              "on_match": {
+                "type": "string",
+                "enum": ["block_and_log", "block_and_alert", "warn_only"],
+                "description": "Reaction when a scan_secrets trigger finds a forbidden pattern."
               },
               "description": { "type": "string" }
             },
