@@ -1,2 +1,20 @@
-archive/ERKLÄRUNG.md
-blog-artikel.md
+# AAMS Workspace — runtime artifacts (not for version control)
+#
+# WORKING/MEMORY/ltm-index.md is intentionally NOT ignored.
+# It is the shared collaboration artifact — every agent and developer
+# needs it to have context. Conflicts are minimal (append-only table).
+#
+# WORKING/WHITEPAPER/ and WORKING/WORKPAPER/ are also committed —
+# they are the session and architecture history of the project.
+
+# Logs: machine-generated runtime output, no collaboration value
+WORKING/LOGS/
+
+# Temporary workpaper drafts
+WORKING/WORKPAPER/*.tmp
+
+# Vector store backends (binary data, not diffable)
+# Uncomment when using a vector store for LTM
+# WORKING/AGENT-MEMORY/
+# WORKING/MEMORY/*.db
+# WORKING/MEMORY/chroma/

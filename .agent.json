@@ -1,0 +1,97 @@
+{
+  "_spec": "AAMS-MINI/1.0",
+  "_doc": "Minimal Agent Bootstrap Contract. Drop this file into any repository. Any agent reading this file MUST create the workspace structure below if it does not exist. Idempotent: safe to read multiple times.",
+  "_source": "https://github.com/aams-spec/aams",
+
+  "workspace": {
+    "root": "./WORKING",
+    "entry_point": "./READ-AGENT.md",
+
+    "structure": {
+      "_doc": "Agent creates these folders on first read. Never deletes. Never overwrites existing content.",
+      "whitepapers": "./WORKING/WHITEPAPER",
+      "workpapers":  "./WORKING/WORKPAPER",
+      "workpapers_closed": "./WORKING/WORKPAPER/closed",
+      "memory":      "./WORKING/MEMORY",
+      "logs":        "./WORKING/LOGS",
+      "guidelines":  "./WORKING/GUIDELINES",
+      "tools":       "./WORKING/TOOLS"
+    },
+
+    "documentation_model": {
+      "_doc": "Three-layer documentation model. Every agent working in this repo MUST follow this.",
+      "workpaper": {
+        "purpose": "Session- and task-scoped working documents. Created at session start, closed at session end.",
+        "naming": "{date}-{agent}-{topic}.md",
+        "location": "./WORKING/WORKPAPER/",
+        "on_close": "move to ./WORKING/WORKPAPER/closed/"
+      },
+      "whitepaper": {
+        "purpose": "Stable architecture and system truth. Written once, updated on structural decisions only.",
+        "location": "./WORKING/WHITEPAPER/",
+        "on_close": "stays — never moved"
+      },
+      "memory": {
+        "purpose": "Long-term context store. Persists cross-session knowledge, changes, decisions.",
+        "location": "./WORKING/MEMORY/",
+        "on_close": "ingest workpaper before closing session"
+      }
+    },
+
+    "bootstrap_rules": {
+      "idempotent": true,
+      "create_if_missing": true,
+      "never_delete": true,
+      "on_entry_point_missing": "create READ-AGENT.md with project scan summary",
+      "agents_md": "create AGENTS.md if missing — bridges AAMS to Copilot, Cursor, Claude Code, Codex, Windsurf and all AGENTS.md-compatible tools",
+      "copilot_instructions": "create .github/copilot-instructions.md pointing to AGENTS.md",
+      "ltm_markdown_threshold": 100,
+      "ltm_warning_at": 90,
+      "ltm_exceeded_behavior": "load_last_20_only",
+      "_ltm_note": "Above 100 entries the markdown index becomes too large for agent context. Agent must notify developer and recommend a vector store backend (ChromaDB, LanceDB, etc.)."
+    },
+
+    "secrets_policy": {
+      "never_in_workpapers": true,
+      "never_in_whitepapers": true,
+      "never_in_memory": true,
+      "never_in_manifest": true,
+      "use": ".env or external secret manager only"
+    },
+
+    "gitignore_patterns": {
+      "_note": "WORKING/MEMORY/ is intentionally NOT ignored — ltm-index.md is the shared collaboration artifact. Only binary/runtime artifacts are excluded.",
+      "always": [
+        "WORKING/LOGS/",
+        "WORKING/WORKPAPER/*.tmp"
+      ],
+      "when_using_vector_store": [
+        "WORKING/AGENT-MEMORY/",
+        "WORKING/MEMORY/*.db",
+        "WORKING/MEMORY/chroma/"
+      ]
+    }
+  },
+
+  "agent_contract": {
+    "_doc": "Behavioral contract every agent MUST honor when working in this repository.",
+    "on_first_entry": [
+      "1. Read READ-AGENT.md (if exists)",
+      "2. Create all workspace.structure folders if missing",
+      "3. Scan repository and write results to first workpaper",
+      "4. Create READ-AGENT.md if missing",
+      "5. Index existing documentation into memory"
+    ],
+    "on_session_start": [
+      "1. Read READ-AGENT.md",
+      "2. Query memory for session topic",
+      "3. Open or create workpaper for this session"
+    ],
+    "on_session_end": [
+      "1. Complete workpaper (file protocol, decisions, next steps)",
+      "2. Ingest workpaper into memory",
+      "3. Move workpaper to closed/",
+      "4. Update READ-AGENT.md if architecture changed"
+    ]
+  }
+}

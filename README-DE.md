@@ -1,196 +1,139 @@
----
+# Land in Sicht: Dein Repo als agentischer Arbeitsraum
 
-# AAMS — Autonomous Agent Manifest Specification
-
-> **Der fehlende Standard für KI-Agenten die in Repositories arbeiten.**
+> **AAMS — Autonomous Agent Manifest Specification**  
 > `README.md` ist für Menschen. `AGENT.json` ist für Maschinen.
 
----
+Wer auf hoher See überleben will, braucht zwei Dinge: eine gute Crew — und eine Karte, die jeder lesen kann. Auch der neue Matrose. Auch die Ablösung in der Nachtschicht. Auch eine KI.
 
-## Das Problem
-
-Jedes Repository hat eine `README.md`. Sie erklärt Menschen, worum es geht, wie man installiert und wie man beiträgt.
-
-Aber wenn ein KI-Agent dieses Repo klont, hat er keine Ahnung: Wo soll ich meine Arbeit ablegen? Wie behalte ich Kontext zwischen Sessions? Was darf ich anfassen? Wo dokumentiere ich Entscheidungen? Wie baue ich ein Langzeitgedächtnis für dieses Projekt auf?
-
-Jede neue Chat-Session startet bei Null. Kontext geht verloren. Entscheidungen werden doppelt getroffen. Dateien verwaisen. Was in Session 47 entschieden wurde, weiß Session 48 nicht.
-
-Das ändern wir.
+Genau das ist AAMS — die Autonomous Agent Manifest Specification.
 
 ---
 
-## Was ist AAMS?
+## Das Problem bleibt. Die Lösung ist jetzt klarer.
 
-AAMS ist ein offener Standard für eine maschinenlesbare Manifest-Datei — `AGENT.json` — die in jedem Repository liegt, direkt neben der `README.md`, und einem KI-Agenten sagt: **So arbeitest du in diesem Projekt.**
+Session 48 weiß nicht, was Session 47 entschieden hat. Das war das Problem damals. Es ist das Problem heute. Und kein Agenten-Framework der Welt löst es — weil das Problem nicht im Framework liegt. Es liegt in der Struktur des Repos.
 
-Sie definiert:
-- **Workspace-Struktur** — wo Whitepapers, Workpapers, Guidelines und Tools liegen
-- **Memory** — wie Langzeitgedächtnis (LTM) für das Projekt aufgebaut und gepflegt wird
-- **Session-Hygiene** — wie Arbeit protokolliert, Audit-Trails erstellt und Sessions sauber abgeschlossen werden
-- **Permissions** — was der Agent lesen, schreiben, ausführen darf und was verboten ist
-- **Tools** — welche externen Tools und APIs der Agent nutzen darf
+Ein Repo ohne Agenten-Struktur ist wie ein Schiff ohne Logbuch. Jeder weiß, was er gestern gemacht hat. Niemand weiß, was vor ihm war.
+
+---
+
+## Die Erkenntnis nach einem Jahr
+
+Ich habe über ein Jahr mit KI-Agenten in echten Projekten gearbeitet. Was ich gelernt habe:
+
+> Das Wichtigste ist nicht, dass Agenten Code schreiben können.  
+> Das Wichtigste ist, dass sie wissen **wo sie sind**.
+
+Wer keine Struktur hat, verliert den Kontext. Wer den Kontext verliert, macht Fehler. Doppelentscheidungen. Verwaiste Dateien. Technische Schuld die kein Mensch bestellt hat.
+
+Die Lösung ist keine neue KI. Die Lösung ist **Disziplin im Repo**.
+
+---
+
+## AAMS ist kein Framework
+
+Das ist die wichtigste Klarstellung.
+
+AAMS ist kein Tool. Keine Runtime. Kein Framework das installiert werden muss.
+
+AAMS ist eine **einzelne Datei** die in jedes Repo gelegt wird:
 
 ```
-beliebiges-projekt/
-├── README.md        ← für Menschen    (Überblick, Setup, Contribution)
-├── AGENT.json       ← für Maschinen   (Workspace, Permissions, Memory, Sessions, Tools)
-└── WORKING/         ← Agent-Workspace (angelegt nach AGENT.json)
-    ├── docs/        ← Whitepapers (Langzeit-Projektwissen)
-    ├── WORKPAPER/   ← Aktive Arbeitssessions
-    │   └── close/   ← Archivierte Sessions
-    ├── GUIDELINES/  ← Coding-Standards, Architektur-Regeln
-    └── TOOLS/       ← Projekt-spezifische Skripte
+.agent.json
 ```
 
-Eine Datei. Ein Standard. Liegt neben deiner README. Funktioniert mit jedem Modell, jeder Runtime, jedem Stack.
+Ein Agent der diese Datei liest, weiß sofort:
+
+- Wo Dokumentation hingehört
+- Wie Sessions strukturiert werden
+- Wo das Langzeitgedächtnis liegt
+- Was er darf — und was nicht
+
+Kein `npm install`. Kein `pip install`. Kein Setup.
 
 ---
 
-## So funktioniert es
+## Das Dreischichten-Dokumentationsmodell
 
-### Erstkontakt (Onboarding)
+Der eigentliche Kern von AAMS. Drei Schichten, verbindlich:
 
-1. **Agent klont ein Repo** und findet `AGENT.json`
-2. **Liest den Entry-Point** (`READ-AGENT.md`) — hat in 30 Sekunden Projektkontext
-3. **Legt die Workspace-Struktur an** — den `WORKING/`-Ordner mit allen Unterverzeichnissen
-4. **Scannt das Repository** — Dateien, Sprachen, Abhängigkeiten, bestehende Dokumentation
-5. **Erstellt Guidelines** — leitet Coding-Standards und Architektur-Regeln aus dem Projekt ab
-6. **Indexiert alles ins LTM** — alle Doku in den Vektorspeicher (z.B. ChromaDB)
-7. **Erstellt erstes Workpaper** — Onboarding-Protokoll das dokumentiert was gefunden wurde
+**Workpaper** — Was mache ich gerade in dieser Session?  
+Wird beim Sessionstart erstellt, beim Sessionende archiviert. Mit vollständigem File Protocol: was wurde erstellt, geändert, gelöscht.
 
-Alle Schritte stehen in `workspace.onboarding` — nicht hartcodiert, pro Projekt konfigurierbar.
+**Whitepaper** — Wie ist dieses System aufgebaut?  
+Stabile Architekturwahrheit. Wird einmal geschrieben, nur bei Architekturentscheidungen angepasst. Nie gelöscht.
 
-### Jede Session
-
-1. **LTM abfragen** — Kontext für das Session-Thema laden (Pflicht-Trigger)
-2. **Offene Workpapers lesen** — weitermachen wo die letzte Session aufgehört hat
-3. **Arbeiten** — nach Permissions, Tool-Bindings, Coding-Guidelines und Code-Hygiene-Regeln
-4. **Dokumentieren** — jede erstellte/geänderte/gelöschte Datei ins Workpaper (fortlaufend, nicht erst am Ende)
-5. **Session abschließen** — Closing-Checkliste (keine Secrets? keine Temp-Dateien? kein verlassener Code?), LTM Re-Ingest, Workpaper archivieren
-
-### Das Ergebnis
-
-Kein Kontextverlust. Keine Doppelarbeit. Keine verwaisten Dateien. Session N+1 weiß was Session N entschieden hat.
-
----
-
-## Dein Manifest validieren
-
-```bash
-# Node.js
-npm install -g ajv-cli
-ajv validate -s AGENT_SCHEMA.json -d AGENT.json
-
-# Python
-pip install check-jsonschema
-check-jsonschema --schemafile AGENT_SCHEMA.json AGENT.json
-```
-
-✅ Valide. Fertig.
-
----
-
-## Spezifikation
-
-Die vollständige Spezifikation liegt in `SPEC.md`.
-
-### Sektionen auf einen Blick
-
-| Sektion       | Pflicht | Zweck |
-|---------------|---------|-------|
-| `identity`    | ✅      | Name, Version, Agententyp |
-| `runtime`     | ✅      | Modell, Provider, Endpoint |
-| `skills`      | ✅      | Deklarierte Fähigkeiten |
-| `permissions` | ✅      | Explizite Erlaubnisse und Verbote |
-| `memory`      | ✅      | Kurzzeit-, Langzeit-, Session-Persistenz |
-| `session`     | ✅      | Logging, Workpaper, Audit-Trail |
-| `tools`       | ✅      | Externe Tool- und API-Bindings |
-| `workspace`   | ✅      | Arbeitsverzeichnis, Onboarding, Session-Hygiene, Code-Hygiene, Secrets-Policy |
-| `governance`  | ⬜      | Compliance- und Review-Metadaten |
-| `metadata`    | ⬜      | Freiformfeld für Provider-Erweiterungen und projekt-spezifische Daten |
-
-**Grundprinzip: Default-Deny.** Alles was nicht explizit erlaubt ist, ist verboten.
-
----
-
-## Designprinzipien
-
-**Local-first.** Version 1.0 ist für selbst gehostete Agenten mit lokalen Modellen gebaut. Cloud- und Multi-Agent-Mesh-Profile sind geplant — Beiträge willkommen.
-
-**Workspace-getrieben.** Ein Agent der ein Repo klont bekommt eine definierte Arbeitsstruktur — Whitepapers für Langzeitwissen, Workpapers für Sessions, Guidelines für Standards. Kein Raten mehr, wo was hinkommt.
-
-**Explizit statt implizit.** Permissions werden deklariert, nicht angenommen. Ein Agent der eine Fähigkeit nicht deklariert, hat sie nicht.
-
-**Kontinuität über Sessions.** Langzeitgedächtnis, Session-Logs und Workpaper-Archive stellen sicher, dass Session N+1 weiß was Session N entschieden hat.
-
-**Maschinenlesbar, menschlich prüfbar.** JSON für Maschinen, `_doc`-Felder für die Menschen die es reviewen.
-
-**Stack-agnostisch.** Funktioniert mit Ollama, LM Studio, llama.cpp, OpenAI, Anthropic oder jedem eigenen Endpoint.
-
----
-
-## Roadmap
-
-| Profil     | Status        | Beschreibung |
-|------------|---------------|--------------|
-| `local-v1` | ✅ Aktuell    | Self-hosted, lokale Modelle |
-| `cloud-v1` | 🔜 Geplant   | Cloud-Provider, API-Keys, Rate-Limits |
-| `mesh-v1`  | 🔜 Geplant   | Multi-Agent-Koordination, Trust-Level |
-| `edge-v1`  | 💡 Idee      | IoT und Edge-Deployment |
-
----
-
-## Repository-Struktur
+**Long-Term Memory** — Was haben wir über die Zeit gelernt?  
+Nach jeder Session wird das Workpaper ins LTM ingested. Session N+1 fragt das LTM bevor sie anfängt. Kein Kontextverlust mehr.
 
 ```
-aams/
-├── README.md              ← du bist hier
-├── SPEC.md                ← vollständige Spezifikation
-├── AGENT.json             ← annotiertes Template
-├── AGENT_SCHEMA.json      ← JSON Schema zur Validierung
-└── registry/
-    └── capabilities.md    ← Standard-Capability-Registry (folgt)
+WORKING/
+├── WHITEPAPER/     ← Stabile Systemwahrheit. Nie löschen.
+├── WORKPAPER/      ← Aktive Session-Arbeit. Pro Session eine Datei.
+│   └── closed/     ← Archivierte abgeschlossene Sessions.
+└── MEMORY/         ← Langzeitgedächtnis. Cross-Session-Kontext.
 ```
 
-**In deinem Projekt (nach Agent-Setup):**
-
-```
-dein-projekt/
-├── README.md              ← für Menschen
-├── AGENT.json             ← für Agenten
-├── READ-AGENT.md          ← Agent-Einstiegspunkt
-└── WORKING/               ← vom Agent angelegt
-    ├── docs/              ← Whitepapers (Architektur, Entscheidungen)
-    ├── WORKPAPER/         ← Aktive Sessions
-    │   └── close/         ← Archivierte Sessions
-    ├── GUIDELINES/        ← Coding-Standards, Regeln
-    ├── TOOLS/             ← Projekt-spezifische Skripte
-    └── AGENT-MEMORY/      ← LTM-Vektorspeicher (z.B. ChromaDB)
-```
+Ein guter Entwickler macht das im Kopf. Ein Agent braucht es explizit und persistent.
 
 ---
 
-## Mitmachen
+## Der Agent Contract
 
-AAMS ist ein offener Standard. Das Feld ist leer und es gibt viel zu bauen.
+Eine `READ-AGENT.md` im Repo-Root definiert den normativen Contract für jeden Agenten der dieses Repo betritt.
 
-**Möglichkeiten beizutragen:**
-- Neue Standard-Capabilities vorschlagen → `registry/capabilities.md`
-- Die Profile `cloud-v1` oder `mesh-v1` mitgestalten
-- Validator-Tooling oder GitHub Actions bauen
-- Eigene `AGENT.json` als Referenz-Implementierung einreichen
-- Issues öffnen für Fälle die der Standard noch nicht abdeckt
+Wer als Agent dieses Repo betritt, führt diesen Contract aus. Keine Diskussion. Keine Interpretation.
 
-Issue oder Pull Request öffnen. Alle Hintergründe willkommen — Agent-Entwickler, Security-Forscher, Plattform-Ingenieure und alle die finden, dass KI-Infrastruktur ordentliche Standards verdient.
+```
+On first entry:       Read READ-AGENT.md → check structure → scan repo → index into MEMORY/
+On session start:     Read READ-AGENT.md → check last workpaper → query MEMORY/
+On session end:       Complete workpaper → ingest → move to closed/ → update READ-AGENT.md
+```
+
+Funktioniert mit jedem Agenten-Framework. Und ohne jedes Framework.
+
+---
+
+## Portabel in jedes Repo
+
+Das entscheidende Designziel: **eine Datei, jedes Repo**.
+
+Hat ein Entwickler ein eigenes Agenten-Framework? Sein Framework erkennt die `WORKING/`-Struktur und nutzt sie direkt als Subagenten-Workspace.
+
+Hat ein Entwickler kein Framework? `.agent.json` + `READ-AGENT.md` sind das kleinste mögliche Agentenframework — deklarativ, idempotent, ohne Abhängigkeiten.
+
+Langfristiges Ziel: AAMS wird zum de-facto Standard den jeder Agent in jedem Repo erkennt.
+
+---
+
+## Der Beweis: AAMS an sich selbst getestet
+
+Dieses Projekt — das Projekt das den Standard beschreibt — hat ihn heute live angewendet.
+
+Eine `.agent.json` gelesen. Struktur angelegt. Erstes Workpaper erstellt. Erstes Whitepaper geschrieben. LTM befüllt. Drei offene GitHub Issues aufgelöst.
+
+Alles dokumentiert. Alles nachvollziehbar. Kein Kontextverlust.
+
+**Das ist der Beweis.**
+
+---
+
+## Technische Spezifikation
+
+| Datei | Inhalt |
+|---|---|
+| [`SPEC-DE.md`](./SPEC-DE.md) | Vollständige technische Referenz |
+| [`AGENT.json`](./AGENT.json) | Annotiertes Referenz-Manifest |
+| [`.agent.json`](./.agent.json) | Minimaler Bootstrap-Contract |
+| [`AGENT_SCHEMA.json`](./AGENT_SCHEMA.json) | JSON Schema zur Validierung |
 
 ---
 
 ## Lizenz
 
-AAMS Specification 1.0 steht unter [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/).
-
-Die Spezifikation ist gemeinfrei. Nutzen, forken, drauf aufbauen. Keine Erlaubnis nötig.
+[CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) — gemeinfrei. Nutzen, forken, drauf aufbauen.
 
 ---
 
-*Ja, dieses Projekt hat eine `README.md`. Die Ironie ist Absicht.*
+*Eine Datei. Jedes Repo. Kein Chaos mehr.*
+

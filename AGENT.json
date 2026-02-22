@@ -45,6 +45,27 @@
         "description": "Sends status messages to a Slack channel (e.g. after deployments or session closings).",
         "input_schema": { "type": "object", "properties": { "channel": { "type": "string" }, "message": { "type": "string" } } },
         "output_schema": { "type": "object", "properties": { "sent": { "type": "boolean" }, "timestamp": { "type": "string" } } }
+      },
+      {
+        "name": "bootstrap_workspace",
+        "description": "Idempotent WORKING/ structure creation. Reads .agent.json, checks folder existence, creates missing folders and seed files (READ-AGENT.md, ltm-index.md). Never deletes. Safe to run multiple times.",
+        "input_schema": {
+          "type": "object",
+          "properties": {
+            "repo_root": { "type": "string", "description": "Absolute path to the repository root." },
+            "dry_run": { "type": "boolean", "description": "If true, report what would be created without making changes. Default: false." }
+          },
+          "required": ["repo_root"]
+        },
+        "output_schema": {
+          "type": "object",
+          "properties": {
+            "created_dirs": { "type": "array", "items": { "type": "string" } },
+            "created_files": { "type": "array", "items": { "type": "string" } },
+            "skipped": { "type": "array", "items": { "type": "string" }, "description": "Already existing paths that were not touched." },
+            "warnings": { "type": "array", "items": { "type": "string" } }
+          }
+        }
       }
     ]
   },
@@ -145,7 +166,7 @@
 
     "structure": {
       "_doc": "Folders the agent creates automatically. Each path relative to project root.",
-      "whitepapers": "./WORKING/docs",
+      "whitepapers": "./WORKING/WHITEPAPER",
       "workpapers": "./WORKING/WORKPAPER",
       "workpapers_closed": "./WORKING/WORKPAPER/close",
       "guidelines": "./WORKING/GUIDELINES",
@@ -276,6 +297,21 @@
 
     "ltm_triggers": [
       {
+        "event": "ltm_index_threshold_warning",
+        "action": "notify_developer",
+        "priority": "mandatory",
+        "threshold": 90,
+        "description": "LTM index approaching 100 entries: agent MUST actively inform developer that a vector store backend is required. Recommended: ChromaDB under ./WORKING/AGENT-MEMORY/. Developer may ignore — but context degradation is their responsibility."
+      },
+      {
+        "event": "ltm_index_threshold_exceeded",
+        "action": "load_last_n_only",
+        "priority": "mandatory",
+        "threshold": 100,
+        "load_last_n": 20,
+        "description": "LTM index exceeds 100 entries without vector store: agent loads only last 20 entries. Older context is blind. Agent must state this limitation explicitly at session start."
+      },
+      {
         "event": "new_workpaper",
         "action": "query",
         "priority": "mandatory",
@@ -325,8 +361,9 @@
       }
     ],
 
+    "_gitignore_note": "WORKING/MEMORY/ is intentionally NOT ignored — ltm-index.md is the shared collaboration artifact. Only runtime/binary artifacts are excluded. When using a vector store, add: WORKING/AGENT-MEMORY/, WORKING/MEMORY/*.db, WORKING/MEMORY/chroma/",
     "gitignore_patterns": [
-      "WORKING/AGENT-MEMORY/",
+      "WORKING/LOGS/",
       "WORKING/WORKPAPER/*.tmp"
     ]
   },

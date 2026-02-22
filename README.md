@@ -1,253 +1,138 @@
-# AAMS — Autonomous Agent Manifest Specification
+# Land Ahoy: Your Repo as an Agentic Workspace
 
-> **The missing standard for AI agents working in repositories.**  
+> **AAMS — Autonomous Agent Manifest Specification**  
 > `README.md` is for humans. `AGENT.json` is for machines.
 
----
+If you want to survive on the open sea, you need two things: a good crew — and a map everyone can read. The new deckhand. The night watch relief. The AI.
 
-## The Problem
-
-Every repository has a `README.md`. It tells humans what the project is, how to install it, and how to contribute.
-
-But when an AI agent clones that repo, it has no idea: Where should I store my work? How do I keep context between sessions? What am I allowed to touch? Where do I document my decisions? How do I build up long-term memory for this project?
-
-Every new chat session starts from zero. Context gets lost. Decisions get repeated. Files get orphaned. What was decided in session 47, session 48 doesn't know.
-
-We fix that.
+That's exactly what AAMS is — the Autonomous Agent Manifest Specification.
 
 ---
 
-## What is AAMS?
+## The Problem Remains. The Solution Is Now Clearer.
 
-AAMS is an open specification for a machine-readable manifest file — `AGENT.json` — that sits in any repository, right next to the `README.md`, and tells an AI agent **how to work in this project**.
+Session 48 doesn't know what session 47 decided. That was the problem back then. It's the problem today. And no agent framework in the world solves it — because the problem isn't in the framework. It's in the structure of the repo.
 
-It defines:
-- **Workspace structure** — where to put whitepapers, workpapers, guidelines, and tools
-- **Memory** — how to build and maintain long-term memory (LTM) for the project
-- **Session hygiene** — how to log work, create audit trails, and close sessions cleanly
-- **Permissions** — what the agent may read, write, execute, and what is forbidden
-- **Tools** — which external tools and APIs the agent may use
+A repo without agent structure is like a ship without a logbook. Everyone knows what they did yesterday. Nobody knows what came before.
+
+---
+
+## One Year of Lessons
+
+I've worked with AI agents in real projects for over a year. What I learned:
+
+> The most important thing is not that agents can write code.  
+> The most important thing is that they know **where they are**.
+
+Without structure, context is lost. Without context, mistakes happen. Duplicate decisions. Orphaned files. Technical debt nobody ordered.
+
+The solution is not a new AI. The solution is **discipline in the repo**.
+
+---
+
+## AAMS Is Not a Framework
+
+This is the most important clarification.
+
+AAMS is not a tool. Not a runtime. Not a framework that needs to be installed.
+
+AAMS is a **single file** dropped into any repo:
 
 ```
-any-project/
-├── README.md        ← for humans    (overview, setup, contribution)
-├── AGENT.json       ← for machines  (workspace, permissions, memory, sessions, tools)
-└── WORKING/         ← agent workspace (created per AGENT.json)
-    ├── docs/        ← whitepapers (long-term project knowledge)
-    ├── WORKPAPER/   ← active work sessions
-    │   └── close/   ← archived sessions
-    ├── GUIDELINES/  ← coding standards, architecture rules
-    └── TOOLS/       ← project-specific scripts
+.agent.json
 ```
 
-One file. One standard. Lives alongside your README. Works with any model, any runtime, any stack.
+An agent that reads this file immediately knows:
+
+- Where documentation belongs
+- How sessions are structured
+- Where long-term memory lives
+- What it's allowed to do — and what it's not
+
+No `npm install`. No `pip install`. No setup.
 
 ---
 
-## How It Works
+## The Three-Layer Documentation Model
 
-### First Contact (Onboarding)
+The actual core of AAMS. Three layers, mandatory:
 
-1. **Agent clones a repo** and finds `AGENT.json`
-2. **Reads entry point** (`READ-AGENT.md`) — gets project context in 30 seconds
-3. **Creates workspace structure** — the `WORKING/` folder with all subdirectories
-4. **Scans the repository** — files, languages, dependencies, existing documentation
-5. **Creates guidelines** — derives coding standards and architecture rules from the project
-6. **Indexes everything into LTM** — all docs into the vector store (e.g. ChromaDB)
-7. **Creates first workpaper** — onboarding protocol documenting what was found
+**Workpaper** — What am I doing in this session?  
+Created at session start, archived at session end. With a complete file protocol: what was created, changed, deleted.
 
-All these steps are defined in `workspace.onboarding` — not hardcoded, configurable per project.
+**Whitepaper** — How is this system built?  
+Stable architecture truth. Written once, updated only on architecture decisions. Never deleted.
 
-### Every Session
-
-1. **Query LTM** — load context for the session topic (mandatory trigger)
-2. **Read open workpapers** — continue where the last session left off
-3. **Work** — following permissions, tool bindings, coding guidelines, and code hygiene rules
-4. **Document** — every created/changed/deleted file goes into the workpaper (tracked continuously, not at the end)
-5. **Close session** — run closing checklist (no secrets? no temp files? no abandoned code?), re-ingest LTM, archive workpaper
-
-### The Result
-
-No context loss. No duplicate work. No orphaned files. Session N+1 knows what session N decided.
-
----
-
-## Quick Example
-
-A minimal `AGENT.json` with the essential fields. The full annotated template in [`AGENT.json`](./AGENT.json) contains all available options including onboarding steps, workpaper rules, code hygiene, and secrets policy.
-
-```json
-{
-  "_spec": "AAMS/1.0",
-  "identity": {
-    "name": "my-agent",
-    "version": "1.0.0",
-    "type": "worker"
-  },
-  "runtime": {
-    "model": "mistral-nemo",
-    "provider": "ollama",
-    "local": true,
-    "endpoint": "http://localhost:11434"
-  },
-  "skills": {
-    "capabilities": ["code_generation", "documentation", "security_audit"]
-  },
-  "permissions": {
-    "filesystem": {
-      "read": ["./"],
-      "write": ["./WORKING"],
-      "forbidden": ["/etc", "/root", "~/.ssh"]
-    },
-    "network": { "allowed": ["localhost"], "forbidden": ["0.0.0.0/0"] },
-    "process": { "shell_execution": false, "sudo": false, "spawn_agents": false },
-    "data": { "can_read_secrets": false, "can_exfiltrate": false, "pii_handling": "forbidden" }
-  },
-  "memory": {
-    "short_term": { "backend": "in-memory", "ttl_seconds": 3600 },
-    "long_term":  { "backend": "chroma", "path": "./WORKING/AGENT-MEMORY" }
-  },
-  "session": {
-    "log_actions": true,
-    "log_level": "info",
-    "audit_trail": true,
-    "create_workpaper": true,
-    "workpaper_path": "./WORKING/WORKPAPER/{date}-{agent}-session.md"
-  },
-  "workspace": {
-    "root": "./WORKING",
-    "entry_point": "./READ-AGENT.md",
-    "structure": {
-      "whitepapers": "./WORKING/docs",
-      "workpapers": "./WORKING/WORKPAPER",
-      "workpapers_closed": "./WORKING/WORKPAPER/close",
-      "guidelines": "./WORKING/GUIDELINES"
-    },
-    "auto_create": true
-  },
-  "tools": { "enabled": [] }
-}
-```
-
----
-
-## Validate Your Manifest
-
-```bash
-# Node.js
-npm install -g ajv-cli
-ajv validate -s AGENT_SCHEMA.json -d AGENT.json
-
-# Python
-pip install check-jsonschema
-check-jsonschema --schemafile AGENT_SCHEMA.json AGENT.json
-```
-
-✅ Valid. Ship it.
-
----
-
-## Specification
-
-The full specification lives in [`SPEC.md`](./SPEC.md).
-
-### Sections at a Glance
-
-| Section       | Required | Purpose |
-|---------------|----------|---------|
-| `identity`    | ✅        | Name, version, agent type |
-| `runtime`     | ✅        | Model, provider, endpoint |
-| `skills`      | ✅        | Declared capabilities |
-| `permissions` | ✅        | Explicit allow/deny rules |
-| `memory`      | ✅        | Short-term, long-term, session persistence |
-| `session`     | ✅        | Logging, workpaper, audit trail |
-| `tools`       | ✅        | External tool and API bindings |
-| `workspace`   | ✅        | Working directory, onboarding, session hygiene, code hygiene, secrets policy |
-| `governance`  | ⬜        | Compliance and review metadata |
-| `metadata`    | ⬜        | Free-form field for provider extensions and project-specific data |
-
-**Core principle: Default-Deny.** Everything not explicitly permitted is forbidden.
-
----
-
-## Design Principles
-
-**Local-first.** Version 1.0 is built for self-hosted agents running local models. Cloud and multi-agent mesh profiles are planned and contributions are welcome.
-
-**Workspace-driven.** An agent that clones a repo gets a defined workspace structure — whitepapers for long-term knowledge, workpapers for sessions, guidelines for standards. No more guessing where to put things.
-
-**Explicit over implicit.** Permissions are declared, not assumed. An agent that doesn't declare a capability doesn't have one.
-
-**Continuity across sessions.** Long-term memory, session logs, and workpaper archives ensure that session N+1 knows what session N decided.
-
-**Machine-readable, human-auditable.** JSON for machines, comments (`_doc` fields) for the humans reviewing it.
-
-**Stack-agnostic.** Works with Ollama, LM Studio, llama.cpp, OpenAI, Anthropic, or any custom endpoint.
-
----
-
-## Roadmap
-
-| Profile    | Status        | Description |
-|------------|---------------|-------------|
-| `local-v1` | ✅ Current     | Self-hosted, local models |
-| `cloud-v1` | 🔜 Planned    | Cloud providers, API keys, rate limits |
-| `mesh-v1`  | 🔜 Planned    | Multi-agent coordination, trust levels |
-| `edge-v1`  | 💡 Idea       | IoT and edge deployment |
-
----
-
-## Repository Structure
+**Long-Term Memory** — What have we learned over time?  
+After every session the workpaper is ingested into LTM. Session N+1 queries LTM before starting. No more context loss.
 
 ```
-aams/
-├── README.md              ← you are here
-├── SPEC.md                ← full specification
-├── AGENT.json             ← annotated template
-├── AGENT_SCHEMA.json      ← JSON Schema for validation
-└── registry/
-    └── capabilities.md    ← standard capability registry (coming soon)
+WORKING/
+├── WHITEPAPER/     ← Stable system truth. Never delete.
+├── WORKPAPER/      ← Active session work. One file per session.
+│   └── closed/     ← Archived completed sessions.
+└── MEMORY/         ← Long-term memory. Cross-session context.
 ```
 
-**In your project (after agent setup):**
-
-```
-your-project/
-├── README.md              ← for humans
-├── AGENT.json             ← for agents
-├── READ-AGENT.md          ← agent entry point
-└── WORKING/               ← created by agent
-    ├── docs/              ← whitepapers (architecture, decisions)
-    ├── WORKPAPER/         ← active sessions
-    │   └── close/         ← archived sessions
-    ├── GUIDELINES/        ← coding standards, rules
-    ├── TOOLS/             ← project-specific scripts
-    └── AGENT-MEMORY/      ← LTM vector store (e.g. ChromaDB)
-```
+A good developer does this in their head. An agent needs it explicit and persistent.
 
 ---
 
-## Contributing
+## The Agent Contract
 
-AAMS is an open standard. The field is empty and there's a lot to build.
+A `READ-AGENT.md` in the repo root defines the normative contract for every agent entering this repo.
 
-**Ways to contribute:**
-- Propose new standard capabilities → `registry/capabilities.md`
-- Help design the `cloud-v1` or `mesh-v1` profiles
-- Build validator tooling or GitHub Actions
-- Share your `AGENT.json` as a reference implementation
-- Open issues for edge cases the spec doesn't cover yet
+Any agent entering this repo executes this contract. No discussion. No interpretation.
 
-Open an issue or a pull request. All backgrounds welcome — agent developers, security researchers, platform engineers, and anyone who thinks AI infrastructure deserves proper standards.
+```
+On first entry:       Read READ-AGENT.md → check structure → scan repo → index into MEMORY/
+On session start:     Read READ-AGENT.md → check last workpaper → query MEMORY/
+On session end:       Complete workpaper → ingest → move to closed/ → update READ-AGENT.md
+```
+
+Works with any agent framework. And without any framework.
+
+---
+
+## Portable Into Any Repo
+
+The decisive design goal: **one file, every repo**.
+
+Does a developer have their own agent framework? Their framework recognizes the `WORKING/` structure and uses it directly as a subagent workspace.
+
+Does a developer have no framework? `.agent.json` + `READ-AGENT.md` are the smallest possible agent framework — declarative, idempotent, zero dependencies.
+
+Long-term goal: AAMS becomes the de-facto standard that every agent recognizes in every repo.
+
+---
+
+## Proof: AAMS Tested on Itself
+
+This project — the project that describes the standard — applied it live today.
+
+One `.agent.json` read. Structure created. First workpaper written. First whitepaper written. LTM populated. Three open GitHub issues resolved.
+
+Everything documented. Everything traceable. No context loss.
+
+**That's the proof.**
+
+---
+
+## Technical Specification
+
+| File | Content |
+|---|---|
+| [`SPEC.md`](./SPEC.md) | Full technical reference |
+| [`AGENT.json`](./AGENT.json) | Annotated reference manifest |
+| [`.agent.json`](./.agent.json) | Minimal bootstrap contract |
+| [`AGENT_SCHEMA.json`](./AGENT_SCHEMA.json) | JSON Schema for validation |
 
 ---
 
 ## License
 
-AAMS Specification 1.0 is released under [CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/).
-
-The specification is public domain. Use it, fork it, build on it. No permission needed.
+[CC0 1.0 Universal](https://creativecommons.org/publicdomain/zero/1.0/) — public domain. Use it, fork it, build on it.
 
 ---
 
-*Yes, this project has a `README.md`. The irony is intentional.*
+*One file. Every repo. No more chaos.*

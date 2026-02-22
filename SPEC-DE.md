@@ -6,7 +6,7 @@
 > **Maintainer:** open — contributions welcome  
 
 ---
-
+ 
 ## Warum AAMS?
 
 Jedes Repository hat eine `README.md`. Sie erklärt Menschen, wie das Projekt funktioniert. Aber wenn ein KI-Agent dieses Repo klont, hat er nichts: keine Arbeitsstruktur, kein Gedächtnis, keine Regeln, keinen Einstiegspunkt.
@@ -41,6 +41,132 @@ WORKING/            → Arbeitsstruktur (angelegt nach AGENT.json)
 
 ---
 
+## Compliance und Durchsetzung
+
+AAMS definiert **was** ein Agent tun soll — erzwingen kann es jedoch keine Konformität. Ein Agent der `AGENT.json` ignoriert, hat keinerlei technische Konsequenz durch das Manifest selbst. Das ist inhärent bei jedem deklarativen Standard (`.editorconfig` hat dieselbe Einschränkung).
+
+Es gibt jedoch bewährte Strategien um die Durchsetzungslücke zu schließen:
+
+| Strategie | Beschreibung |
+|-----------|-------------|
+| **System-Prompt-Injektion** | Der Agent-Harness liest `AGENT.json` und injiziert die Regeln in den System-Prompt. Häufigster Ansatz für chat-basierte Agenten. |
+| **Wrapper / Agent-Harness** | Eine übergeordnete Schicht fängt Agenten-Aktionen ab und validiert sie gegen `AGENT.json` vor der Ausführung. |
+| **Pre/Post-Hooks** | CI/CD- oder Git-Hooks führen `aams-lint` vor Commits aus um Workpaper-Vollständigkeit und Code-Hygiene zu prüfen. |
+| **Validator-Tooling** | `aams-validate` für Struktur-Compliance, `aams-lint --check-refs` für Pfad-Konsistenz. |
+| **Audit-Trail-Review** | Das `session.audit_trail`-Log ermöglicht nachträgliche Erkennung von Verletzungen. |
+
+> **Empfehlung für Implementierer:** Mindestens `AGENT.json`-Regeln in den System-Prompt injizieren und `aams-validate` in CI ausführen. Für höhere Vertrauensumgebungen: Agent-Harness mit Laufzeit-Berechtigungsprüfungen hinzufügen.
+
+### Integrationspatterns (konkrete Beispiele)
+
+#### Pattern 1: System-Prompt-Injektion
+
+Der einfachste Ansatz. Der Orchestrator liest `AGENT.json` und injiziert relevante Regeln bei Session-Start in den System-Prompt des Agenten.
+
+```python
+# Beispiel: System-Prompt aus AGENT.json aufbauen
+import json
+
+def build_system_prompt(agent_json_path: str) -> str:
+    with open(agent_json_path) as f:
+        manifest = json.load(f)
+
+    rules = []
+    # Berechtigungen
+    perms = manifest["permissions"]
+    rules.append(f"Du darfst schreiben nach: {perms['filesystem'].get('write', [])}")
+    rules.append(f"Verbotene Pfade: {perms['filesystem'].get('forbidden', [])}")
+    rules.append(f"Shell-Ausführung: {'erlaubt' if perms['process'].get('shell_execution') else 'VERBOTEN'}")
+
+    # Session-Hygiene
+    session = manifest["session"]
+    if session.get("create_workpaper"):
+        rules.append(f"Erstelle ein Workpaper unter: {session['workpaper_path']}")
+    rules.append("Protokolliere jede erstellte, geänderte oder gelöschte Datei im Workpaper-Dateiprotokoll.")
+
+    # Code-Hygiene
+    hygiene = manifest.get("workspace", {}).get("code_hygiene", {})
+    if hygiene.get("no_commented_code"):
+        rules.append("Niemals auskommentierten Code ohne Erklärung hinterlassen.")
+    if hygiene.get("forbidden_patterns"):
+        rules.append(f"Niemals Dateien mit diesen Mustern erstellen: {hygiene['forbidden_patterns']}")
+
+    return "## Agent-Regeln (aus AGENT.json)\n" + "\n".join(f"- {r}" for r in rules)
+```
+
+#### Pattern 2: Agent-Harness mit Tool-Wrapping
+
+Eine Middleware-Schicht die Tool-Aufrufe abfängt und sie gegen Berechtigungen validiert bevor sie ausgeführt werden.
+
+```python
+# Beispiel: Berechtigungsprüfender Wrapper für Dateisystem-Operationen
+class AAMSHarness:
+    def __init__(self, manifest: dict):
+        self.fs_write = manifest["permissions"]["filesystem"].get("write", [])
+        self.fs_forbidden = manifest["permissions"]["filesystem"].get("forbidden", [])
+        self.shell_allowed = manifest["permissions"]["process"].get("shell_execution", False)
+
+    def check_file_write(self, path: str) -> bool:
+        """Gibt True zurück wenn der Agent an diesen Pfad schreiben darf."""
+        for forbidden in self.fs_forbidden:
+            if path.startswith(forbidden):
+                raise PermissionError(f"AAMS: Schreiben nach '{path}' ist verboten")
+        for allowed in self.fs_write:
+            if path.startswith(allowed):
+                return True
+        raise PermissionError(f"AAMS: Schreiben nach '{path}' nicht in erlaubten Pfaden: {self.fs_write}")
+
+    def check_shell(self, command: str) -> bool:
+        if not self.shell_allowed:
+            raise PermissionError(f"AAMS: Shell-Ausführung ist verboten. Blockiert: {command}")
+        return True
+```
+
+#### Pattern 3: GitHub Action als Pre-Commit-Check
+
+Eine CI/CD-Pipeline die Agenten-Output validiert bevor er den Hauptbranch erreicht.
+
+```yaml
+# .github/workflows/aams-check.yml
+name: AAMS Compliance Check
+on: [pull_request]
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: AGENT.json Schema validieren
+        run: |
+          pip install check-jsonschema
+          check-jsonschema --schemafile AGENT_SCHEMA.json AGENT.json
+
+      - name: Workpaper-Vollständigkeit prüfen
+        run: |
+          for wp in WORKING/WORKPAPER/*.md; do
+            [ -f "$wp" ] || continue
+            for section in "Session Scope" "File Protocol" "Session Closing Checklist"; do
+              grep -q "## .*$section" "$wp" || echo "::error file=$wp::Fehlender Abschnitt: $section"
+            done
+          done
+
+      - name: Code-Hygiene prüfen
+        run: |
+          for pattern in "test-*" "debug-*" "temp-*" "*.tmp" "*.bak"; do
+            found=$(find . -name "$pattern" -not -path "./node_modules/*" -not -path "./.git/*")
+            [ -z "$found" ] || echo "::error::Verbotene Dateien gefunden: $found"
+          done
+
+      - name: Keine Secrets in Workpapers
+        run: |
+          grep -rn -E "(password|secret|token|api_key)\s*[:=]\s*['\"][^'\"]{8,}" WORKING/WORKPAPER/ \
+            && echo "::error::Potenzielle Secrets in Workpapers gefunden" || true
+```
+
+AAMS schreibt keinen einzigen Durchsetzungsmechanismus vor — Implementierungen reichen von einfacher Prompt-Injektion bis zu vollständig gekapselten Laufzeiten. Der Standard definiert den Vertrag; Durchsetzung ist Aufgabe der Laufzeitumgebung.
+
+---
+
 ## Dateiname und Ablage
 
 ```
@@ -50,13 +176,13 @@ WORKING/            → Arbeitsstruktur (angelegt nach AGENT.json)
 ├── READ-AGENT.md      # Agent-Einstiegspunkt (Projektkontext auf einen Blick)
 ├── AGENT_SCHEMA.json  # Optional: lokale Kopie des Schemas zur Validierung
 └── WORKING/           # Arbeitsstruktur (angelegt nach workspace-Sektion)
-    ├── docs/          # Whitepapers (Architektur, Entscheidungen, Standards)
+    ├── WHITEPAPER/    # Whitepapers (Architektur, Entscheidungen, Standards)
     ├── WORKPAPER/     # Aktive Arbeitssessions
-    │   └── close/     # Archivierte Sessions
+    │   └── closed/    # Archivierte Sessions
+    ├── MEMORY/        # LTM-Index oder Vektorspeicher (z.B. ChromaDB)
     ├── GUIDELINES/    # Coding-Standards, Architektur-Regeln
     ├── TOOLS/         # Projekt-spezifische Hilfsskripte
-    ├── DATABASE/      # Migrations, Scripts, Schema-Definitionen
-    └── AGENT-MEMORY/  # LTM-Vektorspeicher (z.B. ChromaDB)
+    └── DATABASE/      # Migrations, Scripts, Schema-Definitionen
 ```
 
 ---
@@ -130,6 +256,8 @@ Vollständige Registry: `https://github.com/aams-spec/aams/blob/main/registry/ca
 
 `custom_skills` — für Skills die außerhalb der Standard-Registry liegen, mit Name, Beschreibung und optionalem Input/Output-Schema.
 
+> **Implementierungshinweis:** `capabilities` ist eine Selbstbeschreibung was der Agent *kann*. Es erteilt keine Berechtigung. Tatsächliche Berechtigungen werden ausschließlich durch die `permissions`-Sektion gesteuert. Siehe „Permissions vs. Capabilities“ unten.
+
 ---
 
 ### `permissions`
@@ -192,11 +320,19 @@ Protokollierung und Sitzungsführung.
 | Feld               | Typ     | Beschreibung |
 |--------------------|---------|--------------|
 | `create_workpaper` | boolean | Erzeugt automatisch ein Sitzungsprotokoll |
-| `workpaper_path`   | string  | Pfad-Template mit `{date}` und `{agent}` |
+| `workpaper_path`   | string  | Pfad-Template mit `{date}` und `{agent}` — Standard-Dateiname wenn kein Thema bekannt (siehe unten) |
 | `log_actions`      | boolean | Pflicht-Logging aller Agenten-Aktionen |
 | `log_path`         | string  | Log-Verzeichnis |
 | `log_level`        | enum    | `debug` `info` `warn` `error` |
 | `audit_trail`      | boolean | Unveränderliches Aktionsprotokoll |
+
+**`workpaper_path` vs. `naming_pattern`:**
+
+Diese zwei Felder dienen unterschiedlichen Zwecken:
+- `session.workpaper_path` ist das **vollständige Pfad-Template** inkl. Verzeichnis, das genutzt wird wenn das Session-System automatisch ein Workpaper erstellt. Das Muster `{date}-{agent}-session.md` ist der Fallback wenn noch kein Thema bekannt ist.
+- `workspace.workpaper_rules.naming_pattern` ist die **Dateinamen-Konvention** (`{date}-{agent}-{topic}.md`) die genutzt wird wenn der Agent ein Workpaper für eine konkrete Aufgabe mit bekanntem Thema erstellt.
+
+In der Praxis: Das erste Workpaper (Onboarding) nutzt `session.workpaper_path` weil noch kein Thema existiert. Folge-Workpapers nutzen `naming_pattern` mit konkretem Thema. Das Verzeichnis wird immer aus `workspace.structure.workpapers` abgeleitet.
 
 ---
 
@@ -212,7 +348,7 @@ Externe Tools die der Agent nutzen darf.
 |-------------------|---------|--------------|
 | `name`            | string  | Eindeutiger Name |
 | `type`            | enum    | `http` `mcp` `cli` `python` `shell` |
-| `endpoint`        | string  | URL oder Pfad |
+| `endpoint`        | string  | URL oder Pfad (**Pflicht** für Typen `http`, `cli`, `python`, `shell`; optional für `mcp`) |
 | `auth`            | enum    | `none` `bearer` `api_key` `basic` |
 | `description`     | string  | Was dieses Tool tut |
 | `allowed_methods` | string[]| z.B. `["GET", "POST"]` |
@@ -300,13 +436,13 @@ Wenn ein Agent ein Repository klont und `AGENT.json` findet:
 
 | Rolle              | Empfohlener Pfad            | Zweck |
 |--------------------|-----------------------------|-------|
-| `whitepapers`      | `./WORKING/docs`            | Langzeit-Dokumentation: Architektur, Entscheidungen, Standards |
+| `whitepapers`      | `./WORKING/WHITEPAPER`      | Langzeit-Dokumentation: Architektur, Entscheidungen, Standards |
 | `workpapers`       | `./WORKING/WORKPAPER`       | Aktive Arbeitssessions |
-| `workpapers_closed`| `./WORKING/WORKPAPER/close` | Archivierte, abgeschlossene Sessions |
+| `workpapers_closed`| `./WORKING/WORKPAPER/closed`| Archivierte, abgeschlossene Sessions |
 | `guidelines`       | `./WORKING/GUIDELINES`      | Coding-Standards, Architektur-Regeln, Konventionen |
 | `tools`            | `./WORKING/TOOLS`           | Projekt-spezifische Hilfsskripte und Werkzeuge |
 | `database`         | `./WORKING/DATABASE`        | Migrations, Scripts, Schema-Definitionen |
-| `memory`           | `./WORKING/AGENT-MEMORY`    | LTM-Vektorspeicher (z.B. ChromaDB) |
+| `memory`           | `./WORKING/MEMORY`          | LTM-Index oder Vektorspeicher (z.B. ChromaDB) |
 
 Zusätzliche Rollen können frei definiert werden (das Schema erlaubt beliebige String-Keys).
 

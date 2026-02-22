@@ -458,13 +458,13 @@ When an agent clones a repository and finds `AGENT.json`:
 
 | Role                | Recommended Path              | Purpose |
 |---------------------|-------------------------------|---------|
-| `whitepapers`       | `./WORKING/docs`              | Long-term documentation: architecture, decisions, standards |
+| `whitepapers`       | `./WORKING/WHITEPAPER`        | Long-term documentation: architecture, decisions, standards |
 | `workpapers`        | `./WORKING/WORKPAPER`         | Active work sessions |
-| `workpapers_closed` | `./WORKING/WORKPAPER/close`   | Archived, completed sessions |
+| `workpapers_closed` | `./WORKING/WORKPAPER/closed`  | Archived, completed sessions |
 | `guidelines`        | `./WORKING/GUIDELINES`        | Coding standards, architecture rules, conventions |
 | `tools`             | `./WORKING/TOOLS`             | Project-specific helper scripts and tools |
 | `database`          | `./WORKING/DATABASE`          | Migrations, scripts, schema definitions |
-| `memory`            | `./WORKING/AGENT-MEMORY`      | LTM vector store (e.g. ChromaDB) |
+| `memory`            | `./WORKING/MEMORY`            | LTM index or vector store (e.g. ChromaDB) |
 
 Additional roles can be freely defined (the schema allows arbitrary string keys).
 

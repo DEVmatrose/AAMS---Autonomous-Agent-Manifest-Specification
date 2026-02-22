@@ -51,16 +51,20 @@
 
 ```
 project-root/
-├── src/              ← main source code
-├── tests/            ← test suite
-├── docs/             ← human documentation
-├── WORKING/          ← agent workspace (see AGENT.json)
-│   ├── docs/         ← whitepapers
-│   ├── WORKPAPER/    ← active sessions
-│   ├── GUIDELINES/   ← coding standards
-│   └── AGENT-MEMORY/ ← LTM vector store
-├── AGENT.json        ← agent manifest
-└── README.md         ← human readme
+├── src/                  ← main source code
+├── tests/                ← test suite
+├── docs/                 ← human documentation
+├── WORKING/              ← agent workspace (see AGENT.json)
+│   ├── WHITEPAPER/       ← stable architecture docs
+│   ├── WORKPAPER/        ← active sessions
+│   │   └── closed/       ← archived sessions
+│   ├── MEMORY/           ← LTM context store
+│   ├── GUIDELINES/       ← coding standards
+│   ├── LOGS/             ← agent audit trail
+│   └── TOOLS/            ← project-specific scripts
+├── .agent.json           ← minimal bootstrap contract
+├── AGENT.json            ← full agent manifest
+└── README.md             ← human readme
 ```
 
 ---
@@ -96,6 +100,42 @@ project-root/
 
 ---
 
+## Agent Contract
+
+> **Any instruction referencing READ-AGENT.md means: execute this contract. Start immediately.**
+
+**On first entry:**
+1. Read this file fully
+2. Check `WORKING/` structure → create if missing (idempotent)
+3. Scan repository → write inventory + analysis to first workpaper
+4. Index existing documentation into `WORKING/MEMORY/`
+
+**On every session start:**
+1. Read this file
+2. Check last workpaper in `WORKING/WORKPAPER/` — what was the last state?
+3. Query `WORKING/MEMORY/` for the session topic
+4. Open or create workpaper for this session
+
+**On every session end:**
+1. Complete workpaper (file protocol + decisions + next steps)
+2. Ingest workpaper into `WORKING/MEMORY/`
+3. Move workpaper to `WORKING/WORKPAPER/closed/`
+4. Update this file if architecture or structure changed
+
+**Mandatory LTM triggers:**
+
+| Trigger | Action |
+|---|---|
+| Context limit reached | Ingest current state → query in new session |
+| Before new workpaper | Query LTM for topic context first |
+| Before new whitepaper | Query LTM for existing architecture notes |
+| Folder or file structure changed | Re-ingest affected documentation |
+| Workpaper updated | Log change in workpaper file protocol |
+| Workpaper closed | Ingest → move to `closed/` |
+| Whitepaper updated | Re-ingest whitepaper into LTM |
+
+---
+
 ## Reading List
 
 <!-- Which documents should the agent read to understand the project? In order of priority. -->
@@ -103,7 +143,7 @@ project-root/
 1. This file (READ-AGENT.md)
 2. `AGENT.json` — workspace rules, permissions, session hygiene
 3. `WORKING/GUIDELINES/` — coding standards
-4. `WORKING/docs/` — architecture whitepapers
+4. `WORKING/WHITEPAPER/INDEX.md` — architecture whitepapers
 5. ...
 
 ---
