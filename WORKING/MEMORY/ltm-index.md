@@ -36,7 +36,7 @@
 
 - **Initialisiert:** 2026-02-22
 - **Letzter Ingest:** 2026-02-22 (Session-Update)
-- **Einträge gesamt:** 30
+- **Einträge gesamt:** 33
 
 ---
 
@@ -74,6 +74,9 @@
 | 028 | 2026-02-22 | WORKPAPER | `WORKING/WORKPAPER/2026-02-22-feldtest-independentes-repo.md` | Feldtest-Workpaper angelegt. Testplan, Hypothesen, Beobachtungs-Tabelle. Ausstehend: echtes externes Repo. |
 | 029 | 2026-02-22 | COMMIT | `600f40c` | Repo umbenannt zu `AAMS---Autonomous-Agent-Manifest-Specification`. Git remote aktualisiert. Alle placeholder URLs (`aams-spec/aams`) ersetzt. GitHub Pages Link in README.md + README-DE.md an zentraler Stelle eingefügt. `_spec_url_status` entfernt (URL live). |
 | 030 | 2026-02-22 | DECISION | `WORKING/WORKPAPER/closed/2026-02-22-ltm-versionierung-git-chroma-sync.md` | Entscheidung: kein Git-in-Git. Git ist bereits als Versionierung vorhanden (`ltm-index.md` in Git = vollständige History). Echter Gap: ChromaDB-Rebuild nach Datenverlust. Lösung: `ltm-rebuild.py` in `WORKING/TOOLS/` — deterministischer Rebuild aus `ltm-index.md`. Workpaper geschlossen. |
+| 031 | 2026-02-22 | WORKPAPER | `WORKING/WORKPAPER/2026-02-22-issue-1-security-secret-exclusion-policy.md` | Workpaper für Issue #1 angelegt. 7 DoD-Punkte: gitignore_patterns erweitern, permissions härten, ltm_triggers Pre-Save-Scan, AGENT_SCHEMA.json output_validation, SPEC.md Sektion, Templates-Update, .gitignore prüfen. |
+| 032 | 2026-02-22 | WORKPAPER | `WORKING/WORKPAPER/2026-02-22-issue-2-project-analysis-template.md` | Workpaper für Issue #2 angelegt. 5 DoD-Punkte: project-analysis-template.md erstellen, SPEC.md "Before You Write a Manifest", onboarding Step 0, README Verweis, AGENT_SCHEMA.json project_analysis_path. |
+| 033 | 2026-02-22 | WORKPAPER | `WORKING/WORKPAPER/2026-02-22-issue-3-spec-luecken.md` | Workpaper für Issue #3 angelegt. 8 Lücken analysiert und priorisiert: _doc-Convention, onboarding Action-Enum, workpaper_path Variablen, closing_checklist Registry, fallback_providers Priorität, session.workpaper_template, LTM-Migration, capabilities-Registry. |
 
 ---
 
