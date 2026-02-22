@@ -49,7 +49,21 @@
         "context_window":      { "type": "integer", "minimum": 512 },
         "temperature":         { "type": "number", "minimum": 0, "maximum": 2 },
         "max_tokens":          { "type": "integer", "minimum": 1 },
-        "system_prompt_file":  { "type": "string" }
+        "system_prompt_file":  { "type": "string" },
+        "fallback_providers": {
+          "type": "array",
+          "description": "Ordered fallback provider list. Index 0 = highest priority. Used when primary provider is unavailable. Each entry overrides 'provider' and 'model' for that fallback slot.",
+          "items": {
+            "type": "object",
+            "required": ["provider", "model"],
+            "properties": {
+              "provider": { "type": "string", "enum": ["ollama", "lm-studio", "llamacpp", "openai", "anthropic", "custom"] },
+              "model":    { "type": "string" },
+              "endpoint": { "type": "string", "format": "uri" }
+            },
+            "additionalProperties": false
+          }
+        }
       },
       "patternProperties": { "^_": true },
       "additionalProperties": false
@@ -305,12 +319,21 @@
                 "properties": {
                   "action": {
                     "type": "string",
-                    "enum": ["read_entry_point", "create_structure", "scan_repository", "index_ltm", "create_entry_point", "create_guidelines", "create_first_workpaper", "custom"],
-                    "description": "Type of action."
+                    "enum": ["read_project_analysis", "read_entry_point", "create_structure", "scan_repository", "index_ltm", "create_entry_point", "create_guidelines", "create_first_workpaper", "custom"],
+                    "description": "Type of action. 'read_project_analysis' = Step 0, read PROJECT-ANALYSIS.md if present. All other values are standard onboarding actions."
                   },
                   "description": { "type": "string" },
                   "target": { "type": "string", "description": "Target path or file for the action." },
-                  "condition": { "type": "string", "enum": ["always", "file_missing", "directory_empty"], "description": "Condition for execution (e.g. 'file_missing', 'always'). Default: 'always'." },
+                  "condition": {
+                    "type": "string",
+                    "enum": ["always", "file_missing", "file_exists", "directory_empty"],
+                    "description": "Condition for execution. 'always' (default), 'file_missing' — only if target does not exist, 'file_exists' — only if target exists (e.g. read_project_analysis), 'directory_empty' — only if target directory has no files."
+                  },
+                  "priority": {
+                    "type": "string",
+                    "enum": ["mandatory", "recommended", "optional", "mandatory_if_present"],
+                    "description": "Binding level of this step. 'mandatory_if_present' = must execute when condition is met, must not block when condition is not met."
+                  },
                   "output_format": {
                     "type": "object",
                     "description": "Defines what results this step produces. Especially relevant for scan_repository.",

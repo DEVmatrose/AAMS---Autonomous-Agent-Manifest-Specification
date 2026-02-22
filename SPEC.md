@@ -274,6 +274,22 @@ Technical runtime configuration.
 | `temperature`        | float   | ⬜        | 0.0–2.0 |
 | `max_tokens`         | integer | ⬜        | Max output length |
 | `system_prompt_file` | string  | ⬜        | Path to system prompt file |
+| `fallback_providers` | array   | ⬜        | Ordered fallback providers (index 0 = highest priority) |
+
+**`fallback_providers`:**
+
+Array-position = priority. Index 0 is tried first. Each entry specifies `provider`, `model`, and optionally `endpoint`:
+
+```json
+"fallback_providers": [
+  { "provider": "lm-studio", "model": "mistral-7b", "endpoint": "http://localhost:1234" },
+  { "provider": "openai",    "model": "gpt-4o-mini" }
+]
+```
+
+If the primary provider fails, the agent attempts providers in array order. Each fallback slot inherits the full prompt context — only `provider`, `model`, and `endpoint` change. No separate `priority` field is needed or valid: if you want a provider to have higher priority, place it at a lower index.
+
+> Frameworks MAY implement circuit-breaking (skip a provider after N consecutive failures). AAMS does not define this — it is implementation behaviour.
 
 ---
 
@@ -288,7 +304,7 @@ code_generation, documentation, file_management, security_audit,
 shell_execution, web_search, data_analysis, image_processing, ...
 ```
 
-Full registry: `https://github.com/aams-spec/aams/blob/main/registry/capabilities.md`
+Full registry: `./registry/capabilities.md` — included in this repository. See `registry/capabilities.md` for the current canonical list with semantic definitions.
 
 `custom_skills` — for skills outside the standard registry, with name, description, and optional input/output schema.
 
@@ -361,6 +377,32 @@ Backends: `in-memory` | `redis` | `sqlite`
 Persistent vector store across sessions.  
 Backends: `none` | `lancedb` | `chroma` | `sqlite` | `pgvector`
 
+**LTM Backend Migration:**
+
+Switching backends requires a full re-index. The standard migration pattern:
+
+1. Ensure all current workpapers and docs have been ingested
+2. Stop any running LTM daemon / release file locks
+3. Delete the old backend files (they are gitignored — no git history risk)
+4. Update `memory.long_term.backend` (and `path` if changed) in `AGENT.json`
+5. Run a full re-ingest (`bulk-ingest` / `ltm-rebuild.py`)
+
+The LTM is always **reconstructible from files** — the source of truth is `WORKING/` and the repository, never the vector store. Document this invariant in your `READ-AGENT.md`.
+
+Record migrations using a `_migration` annotation:
+
+```json
+"memory": {
+  "long_term": {
+    "backend": "chroma",
+    "path": "./WORKING/AGENT-MEMORY",
+    "_migration": "Migrated from lancedb to chroma on 2026-02-22. Full re-ingest completed."
+  }
+}
+```
+
+A reference rebuild script (`WORKING/TOOLS/ltm-rebuild.py`) is provided in this repository. It reads all workpapers, whitepapers, and documentation from the filesystem and re-indexes them fresh — no export/import migration is required.
+
 #### `session`
 Whether and where session data is persisted.
 
@@ -386,6 +428,22 @@ These two fields serve different purposes:
 - `workspace.workpaper_rules.naming_pattern` is the **filename convention** (`{date}-{agent}-{topic}.md`) used when the agent creates a workpaper for a specific task where the topic is known.
 
 In practice: the first workpaper (onboarding) uses `session.workpaper_path` because no topic exists yet. Subsequent workpapers use `naming_pattern` with a concrete topic. The directory is always derived from `workspace.structure.workpapers`.
+
+**Template Variable Reference:**
+
+All path templates (`workpaper_path`, `naming_pattern`) support the following placeholders:
+
+| Variable  | Format       | Source                                              | Example        |
+|-----------|--------------|-----------------------------------------------------|----------------|
+| `{date}`  | `YYYY-MM-DD` | ISO 8601, UTC date at session start                 | `2026-02-22`   |
+| `{agent}` | kebab-case   | `identity.name`, lowercased, spaces → hyphens       | `copilot`      |
+| `{topic}` | kebab-case   | Session topic, set at workpaper creation time       | `fix-auth-bug` |
+
+**Rules:**
+- `session.workpaper_path` MUST contain `{date}` and `{agent}` (enforced by schema `pattern`). `{topic}` is optional — use it for the fallback filename only when no topic is known yet.
+- `workspace.workpaper_rules.naming_pattern` SHOULD contain all three: `{date}`, `{agent}`, `{topic}`.
+- Custom placeholders (e.g. `{project}`) are permitted and resolved by the implementing runtime.
+- Unresolved placeholders MUST NOT raise an error — the agent MAY substitute `unknown` as fallback.
 
 ---
 
@@ -533,6 +591,7 @@ flowchart TD
 
 | Action                 | Description |
 |------------------------|-------------|
+| `read_project_analysis`| Read `PROJECT-ANALYSIS.md` if present — pre-manifest project reality (repo topology, existing tools, LTM state, workpaper history, security, governance). `condition: file_exists`, `priority: mandatory_if_present`. Step 0. |
 | `read_entry_point`     | Read `READ-AGENT.md` — project context in 30 seconds |
 | `create_structure`     | Create all folders from `structure` |
 | `scan_repository`      | Scan repo: files, languages, dependencies, existing docs |
@@ -547,7 +606,8 @@ flowchart TD
 Onboarding steps may include an optional `condition` field that controls execution:
 - `always` (default) — step is always executed
 - `file_missing` — only if the `target` file does not exist (e.g. `create_entry_point`)
-- `directory_empty` — only if the `target` directory is empty
+- `file_exists` — only if the `target` file exists (e.g. `read_project_analysis`: run only when `PROJECT-ANALYSIS.md` is present)
+- `directory_empty` — only if the `target` directory has no files
 
 ```json
 {
@@ -607,8 +667,24 @@ Every workpaper follows strict rules. This is the result of real-world experienc
 | `template_file_quick`| string  | Path to a short template for minor fixes and small tasks |
 | `required_sections`  | string[]| Required sections (see below) |
 | `file_tracking`      | object  | File protocol rules |
-| `closing_checklist`  | string[]| Checklist before closing |
+| `closing_checklist`  | string[]| Checklist items to verify before closing (see Standard Items below) |
 | `on_close`           | enum    | `move_to_closed` · `archive` · `delete` |
+
+**Standard Closing Checklist Items:**
+
+The following strings are the AAMS Closing Checklist Registry. Use these exact values in `closing_checklist` for potential automated validation by compliant runtimes:
+
+| String value               | What it verifies |
+|----------------------------|------------------|
+| `file_protocol_complete`   | All created/modified/deleted files recorded in the file protocol |
+| `no_secrets_in_files`      | No passwords, tokens, or API keys in any written file |
+| `workpaper_status_updated` | Workpaper status is set to ✅ COMPLETED |
+| `ltm_ingested`             | Workpaper and changed files ingested into LTM before archiving |
+| `next_steps_documented`    | Concrete next steps written — not "TBD" |
+| `commit_pushed`            | All changes committed and pushed to remote (if applicable) |
+| `open_tasks_in_backlog`    | Unfinished tasks tracked in backlog workpaper or issue |
+
+Projects MAY add custom items. Custom items SHOULD use `snake_case` to remain forward-compatible with future validators.
 
 **Full vs. Quick Template:**
 
@@ -783,6 +859,28 @@ aams-lint --check-refs AGENT.json
 ```
 
 Without such a check, `_ref` annotations risk becoming stale after refactoring.
+
+#### `_` Annotation Convention
+
+AAMS uses `_`-prefixed fields as machine-ignored, human-readable annotations. Every object in the schema permits them via `patternProperties: { "^_": true }`. This is intentional — not a schema loophole.
+
+**Standard annotation keys:**
+
+| Key pattern              | Purpose | Example value |
+|--------------------------|---------|---------------|
+| `_doc`                   | Inline documentation for the parent object | `"Steps executed on first setup"` |
+| `_ref`                   | Origin reference for a derived value | `"workspace.structure.memory"` |
+| `_*_ref`                 | Named reference for a specific field | `"_workpaper_path_ref": "workspace.structure.workpapers"` |
+| `_note`                  | Non-normative note for maintainers | `"Review after cloud-v1"` |
+| `_todo`                  | Open question or tracked task | `"Add rate limiting in cloud-v1"` |
+| `_migration`             | Migration history entry | `"Migrated from lancedb on 2026-02-22"` |
+| `_restricted_write_doc`  | Documents why a path is in `restricted_write` | `"Protected to prevent accidental mass-delete"` |
+
+**Rules:**
+- `_`-prefixed fields have **no semantic effect**. Validators MUST ignore them for compliance checking.
+- They are preserved during `aams-migrate` — never stripped automatically.
+- Custom `_`-prefixed keys are permitted. Use a namespace prefix to avoid future collisions: `"_myapp_note": "..."` rather than `"_note": ".."`.
+- Only the root `_spec` field is normative — it is not a comment, it identifies the standard version.
 
 ---
 
