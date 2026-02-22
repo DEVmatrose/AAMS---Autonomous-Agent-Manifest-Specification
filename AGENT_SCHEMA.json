@@ -441,6 +441,28 @@
           "patternProperties": { "^_": true },
           "additionalProperties": false
         },
+        "output_validation": {
+          "type": "object",
+          "description": "Declarative secret scan policy. Defines WHAT to scan for and WHAT to do on match. Enforcement requires a compliant runtime or pre-commit hook.",
+          "properties": {
+            "scan_before_write": {
+              "type": "boolean",
+              "description": "Scan content of any workpaper, whitepaper, or documentation file before writing to disk."
+            },
+            "forbidden_patterns": {
+              "type": "array",
+              "description": "Regex patterns that must not appear in any output file. Matches block the write.",
+              "items": { "type": "string" }
+            },
+            "on_match": {
+              "type": "string",
+              "enum": ["block_and_log", "block_and_alert", "warn_only"],
+              "description": "What happens when a forbidden pattern is found."
+            }
+          },
+          "patternProperties": { "^_": true },
+          "additionalProperties": false
+        },
         "ltm_triggers": {
           "type": "array",
           "description": "Rules that define WHEN long-term memory must be used.",
@@ -454,8 +476,8 @@
               },
               "action": {
                 "type": "string",
-                "enum": ["query", "ingest", "query_and_ingest"],
-                "description": "What happens with the LTM."
+                "enum": ["query", "ingest", "query_and_ingest", "scan_secrets"],
+                "description": "What happens with the LTM or security scan."
               },
               "priority": {
                 "type": "string",

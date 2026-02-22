@@ -658,6 +658,20 @@ BBB_SHARED_SECRET: abc123xyz
 BBB_SHARED_SECRET: See .env on server / Bitwarden entry "BBB"
 ```
 
+#### `output_validation` — Declarative Secret Scan Policy
+
+Defines **what** to scan for before writing any workpaper, whitepaper, or documentation file.
+
+| Field                | Type    | Description |
+|----------------------|---------|-------------|
+| `scan_before_write`  | boolean | Scan content before writing to disk |
+| `forbidden_patterns` | array   | Regex patterns that must not appear in output |
+| `on_match`           | enum    | `block_and_log` · `block_and_alert` · `warn_only` |
+
+> **Important:** `output_validation` is a *declaration*, not runtime enforcement. AAMS defines what should be scanned. Actual enforcement requires either a compliant agent runtime that respects this field, or an external tool (pre-commit hook, CI scanner). This is intentional — AAMS is framework-independent.
+>
+> **Recommended enforcement path:** A `git pre-commit` hook that reads `forbidden_patterns` from `AGENT.json` and blocks commits containing matches. This works independently of any agent framework.
+
 #### `ltm_triggers` — Long-Term Memory Rules
 
 Without mandatory triggers, LTM gets forgotten. Therefore AAMS defines explicit triggers:
@@ -736,6 +750,92 @@ aams-lint --check-refs AGENT.json
 ```
 
 Without such a check, `_ref` annotations risk becoming stale after refactoring.
+
+---
+
+## Absolute Secret Exclusion Policy
+
+Secrets, passwords, tokens, and credentials must **never** appear in any AAMS-managed document layer.
+
+**Prohibited locations — no exceptions:**
+- Workpapers (active or archived)
+- Whitepapers
+- Guidelines
+- LTM (agent memory — both audit log and vector store)
+- Log files (`WORKING/LOGS/`)
+- Git history (a committed secret is permanent, even after deletion)
+- Any documentation file in the repository
+
+**Permitted storage locations only:**
+
+| Location | Condition |
+|----------|----------|
+| `.env` | Not versioned (`gitignore_patterns` must include `.env.*`) |
+| Dedicated secret manager (Bitwarden, Vault, etc.) | Reference by name only, never inline |
+| `.point-mf` | Not versioned, not agent-readable |
+| Physically offline | Air-gapped storage for highest-sensitivity credentials |
+
+**Violation = Critical Security Incident.** There are no exceptions. No "just for testing". No "temporary exposure".
+
+### Why declaration alone is not enough
+
+LLMs have no persistent rule binding. Token context is dynamically prioritized per request. This means:
+- A session with large injected LTM context can deprioritize `secrets_policy` rules
+- A long or complex task can cause checklist items to be skipped
+- `never_in_workpapers: true` is a flag in a JSON file — not infrastructure-level enforcement
+
+**Documented rules ≠ enforced security.**
+
+### Three-layer enforcement model
+
+AAMS defines the policy. Enforcement requires three independent layers:
+
+| Layer | Mechanism | AAMS field |
+|-------|-----------|------------|
+| **1. Agent-level** | Agent reads `workspace.output_validation.forbidden_patterns` and scans before every write | `workspace.output_validation` |
+| **2. Git pre-commit hook** | Hook reads `forbidden_patterns` from `AGENT.json`, blocks commit if match found | `workspace.gitignore_patterns` |
+| **3. CI/CD scanner** | Pipeline runs secret scan on every push (e.g. `gitleaks`, `trufflehog`) | External — documented in `workspace.code_hygiene` |
+
+Each layer is independent. Failure of one layer must not compromise the others: defense in depth.
+
+### Pre-commit hook reference implementation
+
+```bash
+#!/bin/bash
+# .git/hooks/pre-commit
+# Reads forbidden_patterns from AGENT.json and blocks commit on match.
+# Requires: jq, grep
+
+PATTERNS=$(jq -r '.workspace.output_validation.forbidden_patterns // [] | .[]' AGENT.json 2>/dev/null)
+
+if [ -z "$PATTERNS" ]; then
+  exit 0  # No patterns defined, skip
+fi
+
+for pattern in $PATTERNS; do
+  if git diff --cached --unified=0 | grep -qP "$pattern"; then
+    echo "❌ Secret pattern detected in staged changes: $pattern"
+    echo "Commit blocked. Remove the secret and use a reference instead."
+    exit 1
+  fi
+done
+
+exit 0
+```
+
+> **Note:** This hook is a reference implementation. It requires `jq` and a grep with PCRE support. Adapt to your environment. The important invariant: **the patterns in `AGENT.json` are the single source of truth** — not a separate hook configuration file.
+
+### Risk matrix
+
+| Scenario | Probability | Impact |
+|----------|-------------|--------|
+| API key in workpaper via LTM injection | Medium | Critical |
+| Credential in Git history | Low | Critical |
+| Agent modifies `.gitignore` and disables protection | Low | High |
+| Secret in `tools.registry.endpoint` inline | Medium | High |
+| JWT/Bearer token in log output | Medium | High |
+
+A single leak is sufficient for full compromise.
 
 ---
 

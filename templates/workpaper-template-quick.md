@@ -36,7 +36,7 @@
 ## Checklist
 
 - [ ] File protocol complete?
-- [ ] No secrets in plain text?
+- [ ] No secrets in plain text? *(Absolute Secret Exclusion Policy — scan before saving)*
 - [ ] No temp files left behind?
 - [ ] LTM re-ingest performed?
 

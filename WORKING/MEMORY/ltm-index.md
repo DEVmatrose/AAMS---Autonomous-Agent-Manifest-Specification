@@ -36,7 +36,7 @@
 
 - **Initialisiert:** 2026-02-22
 - **Letzter Ingest:** 2026-02-22 (Session-Update)
-- **Einträge gesamt:** 33
+- **Einträge gesamt:** 34
 
 ---
 
@@ -77,6 +77,7 @@
 | 031 | 2026-02-22 | WORKPAPER | `WORKING/WORKPAPER/2026-02-22-issue-1-security-secret-exclusion-policy.md` | Workpaper für Issue #1 angelegt. 7 DoD-Punkte: gitignore_patterns erweitern, permissions härten, ltm_triggers Pre-Save-Scan, AGENT_SCHEMA.json output_validation, SPEC.md Sektion, Templates-Update, .gitignore prüfen. |
 | 032 | 2026-02-22 | WORKPAPER | `WORKING/WORKPAPER/2026-02-22-issue-2-project-analysis-template.md` | Workpaper für Issue #2 angelegt. 5 DoD-Punkte: project-analysis-template.md erstellen, SPEC.md "Before You Write a Manifest", onboarding Step 0, README Verweis, AGENT_SCHEMA.json project_analysis_path. |
 | 033 | 2026-02-22 | WORKPAPER | `WORKING/WORKPAPER/2026-02-22-issue-3-spec-luecken.md` | Workpaper für Issue #3 angelegt. 8 Lücken analysiert und priorisiert: _doc-Convention, onboarding Action-Enum, workpaper_path Variablen, closing_checklist Registry, fallback_providers Priorität, session.workpaper_template, LTM-Migration, capabilities-Registry. |
+| 034 | 2026-02-22 | SECURITY | `AGENT.json` + `AGENT_SCHEMA.json` + `SPEC.md` + `templates/` + `.gitignore` | Issue #1 umgesetzt: 7 DoD gescored. gitignore_patterns (+8 Secret-Muster), restricted_write für .gitignore, ltm_triggers workpaper_pre_save+scan_secrets, AGENT_SCHEMA output_validation+forbidden_patterns, SPEC.md output_validation-Untersektion + H2 "Absolute Secret Exclusion Policy" (3-Layer-Modell, Risk-Matrix, Pre-Commit-Hook-Implementierung), beide Templates aktualisiert. |
 
 ---
 

@@ -18,3 +18,12 @@ WORKING/WORKPAPER/*.tmp
 # Vector store (binary data, not diffable — rebuilt from ltm-index.md on first ingest)
 WORKING/AGENT-MEMORY/
 WORKING/MEMORY/*.db
+
+# Secret Exclusion Policy — these files must never be versioned
+.env
+.env.*
+.env.local
+.point-mf
+*.pem
+*.key
+secrets.*

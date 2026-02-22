@@ -74,7 +74,9 @@
     "_doc": "Explicit permissions and prohibitions. Everything not explicitly permitted is forbidden.",
     "filesystem": {
       "read": ["./"],
-      "write": ["./WORKING", "./READ-AGENT.md", "./.gitignore"],
+      "write": ["./WORKING", "./READ-AGENT.md"],
+      "restricted_write": ["./.gitignore"],
+      "_restricted_write_doc": "Files the agent may only modify with explicit user confirmation. .gitignore is here because modifying it could bypass security patterns.",
       "forbidden": ["/etc", "/sys", "/root", "~/.ssh"]
     },
     "network": {
@@ -359,13 +361,28 @@
         "action": "ingest",
         "priority": "recommended",
         "description": "New package installed: ingest if documentation-relevant."
+      },
+      {
+        "event": "workpaper_pre_save",
+        "action": "scan_secrets",
+        "priority": "mandatory",
+        "on_match": "block_and_alert",
+        "description": "Before saving any workpaper: scan content for secret patterns (API keys, tokens, passwords, private keys). Block if match found. This is the last guardrail before a secret enters Git history."
       }
     ],
 
     "_gitignore_note": "WORKING/MEMORY/ is intentionally NOT ignored — ltm-index.md is the shared collaboration artifact. Only runtime/binary artifacts are excluded. When using a vector store, add: WORKING/AGENT-MEMORY/, WORKING/MEMORY/*.db, WORKING/MEMORY/chroma/",
     "gitignore_patterns": [
       "WORKING/LOGS/",
-      "WORKING/WORKPAPER/*.tmp"
+      "WORKING/WORKPAPER/*.tmp",
+      "WORKING/AGENT-MEMORY/",
+      ".env",
+      ".env.*",
+      ".env.local",
+      ".point-mf",
+      "*.pem",
+      "*.key",
+      "secrets.*"
     ]
   },
 

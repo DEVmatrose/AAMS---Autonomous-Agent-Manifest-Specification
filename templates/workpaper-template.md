@@ -126,7 +126,7 @@
 - [ ] File protocol complete (created/modified/moved/archived/deleted)?
 - [ ] No temporary test files in repo (`test-*`, `debug-*`, `temp-*`)?
 - [ ] No commented-out code blocks without explanation?
-- [ ] No secrets/passwords/tokens in plain text in workpaper?
+- [ ] **⚠️ No secrets/passwords/tokens/API keys in plain text in workpaper?** *(Absolute Secret Exclusion Policy — scan before saving. See `workspace.output_validation.forbidden_patterns` in AGENT.json)*
 - [ ] `.env.example` updated if new environment variables?
 - [ ] Relevant whitepapers checked for currency?
 - [ ] Architecture decisions noted in corresponding whitepaper?
