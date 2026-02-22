@@ -182,6 +182,13 @@
       "_doc": "Steps the agent executes during initial setup — in this order.",
       "steps": [
         {
+          "action": "read_project_analysis",
+          "description": "Read PROJECT-ANALYSIS.md if present — contains pre-manifest project reality assessment (repo topology, existing tools, LTM state, workpaper history, security enforcement, governance). Informs all subsequent onboarding decisions.",
+          "target": "./PROJECT-ANALYSIS.md",
+          "condition": "file_exists",
+          "priority": "mandatory_if_present"
+        },
+        {
           "action": "read_entry_point",
           "description": "Read READ-AGENT.md — provides project context, architecture, priorities.",
           "target": "./READ-AGENT.md"

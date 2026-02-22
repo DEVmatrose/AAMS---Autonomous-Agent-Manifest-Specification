@@ -91,6 +91,8 @@ Three files, three different purposes — not three versions of the same thing:
 
 **Starting a new project?** Copy `.agent.json`. Done.
 
+**Onboarding an existing project?** Fill out `templates/project-analysis-template.md` first — it captures repo topology, existing tools, LTM state, and conventions before you write a single line of manifest.
+
 **Building a framework or harness?** Use `AGENT.json` as the reference manifest.
 
 **Working with Copilot, Cursor, etc.?** `AGENTS.md` in the root is all you need — it routes them to the rest automatically.

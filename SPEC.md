@@ -190,6 +190,39 @@ AAMS intentionally does not prescribe a single enforcement mechanism — impleme
 
 ---
 
+## Before You Write a Manifest
+
+Filling out `AGENT.json` without understanding the project reality leads to incomplete or wrong manifests. Before writing any manifest for an existing project, capture the project's actual state.
+
+**Use `templates/project-analysis-template.md`** — a structured questionnaire with 9 sections:
+
+| Section | What it captures | Affects |
+|---|---|---|
+| Project Identity | Name, type, stack, status, license | `identity`, `metadata` |
+| Repository Topology | Repo count, remote, nesting, branches | `gitignore_patterns`, `permissions.filesystem` |
+| Filesystem Reality | Where is `WORKING/`? What is write-sensitive? | `workspace.structure`, `permissions` |
+| Existing Tools & Scripts | Paths, types, CI integration, LTM tool | `tools.registry`, `permissions.process` |
+| LTM State | Exists? Backend? Chunks? Fresh or incremental? | `memory.long_term`, onboarding mode |
+| Session & Workpaper History | Naming pattern, existing sessions, open tasks | `workpaper_rules.naming_pattern` |
+| Security Enforcement | Scanner, hooks, exit codes, permitted locations | `secrets_policy`, `output_validation` |
+| Governance | Who changes the manifest? Review interval? | `governance` |
+| Open Debt & Priorities | What must the agent know at start? | First workpaper, `READ-AGENT.md` |
+
+**Workflow:**
+```
+1. Copy templates/project-analysis-template.md → PROJECT-ANALYSIS.md
+2. Fill out all 9 sections
+3. Write AGENT.json based on the answers
+4. Write READ-AGENT.md based on the answers
+5. Reference in AGENT.json: workspace.project_analysis_path: "./PROJECT-ANALYSIS.md"
+```
+
+The agent reads `PROJECT-ANALYSIS.md` as **Step 0** of onboarding (`action: read_project_analysis`, `condition: file_exists`). If the file is not present, onboarding continues normally.
+
+> **For greenfield projects:** `PROJECT-ANALYSIS.md` is optional. The onboarding scan (`action: scan_repository`) replaces the manual analysis. For existing projects with history, tooling, and established conventions, the template prevents the most common manifest mistakes.
+
+---
+
 ## Structure Overview
 
 | Section      | Required | Purpose |

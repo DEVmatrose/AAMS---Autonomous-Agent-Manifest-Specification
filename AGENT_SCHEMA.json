@@ -260,6 +260,11 @@
       "type": "object",
       "required": ["root", "entry_point", "auto_create", "structure"],
       "properties": {
+        "project_analysis_path": {
+          "type": "string",
+          "description": "Path to the project analysis document (filled before writing AGENT.json). If present, the agent reads this as Step 0 of onboarding.",
+          "default": "./PROJECT-ANALYSIS.md"
+        },
         "root": {
           "type": "string",
           "description": "Root directory of the workspace structure created by the agent."

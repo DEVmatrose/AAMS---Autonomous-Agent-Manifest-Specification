@@ -2,7 +2,7 @@
 
 **Project:** Autonomous Agent Manifest Specification  
 **Module:** templates/ / SPEC.md / workspace.onboarding / AGENT_SCHEMA.json  
-**Status:** 🚧 IN PROGRESS  
+**Status:** ✅ COMPLETED  
 **Date:** 2026-02-22  
 **GitHub Issue:** https://github.com/DEVmatrose/AAMS---Autonomous-Agent-Manifest-Specification/issues/2
 
@@ -110,7 +110,15 @@ Optionales Feld im `workspace`-Objekt:
 
 ## 4. Ergebnisse
 
-<!-- Wird während der Umsetzung befüllt -->
+Alle 5 DoD-Punkte vollständig implementiert.
+
+- `templates/project-analysis-template.md`: 9 Sektionen, Tabellen-Format, `> Affects:` Hinweise pro Sektion, "How to use" Abschnitt am Ende
+- `SPEC.md`: Neue H2-Sektion "Before You Write a Manifest" vor `## Structure Overview` — erklärt Zweck, zeigt alle 9 Sektionen in Tabelle, beschreibt Workflow und greenfield-Ausnahme
+- `AGENT.json`: Step 0 `read_project_analysis` (condition: `file_exists`, priority: `mandatory_if_present`) vor `read_entry_point` eingeschoben
+- `AGENT_SCHEMA.json`: `project_analysis_path` als optionales String-Feld mit Default `./PROJECT-ANALYSIS.md` im `workspace`-Objekt
+- `README.md`: Satz für "Onboarding an existing project?" ergänzt mit Verweis auf Template
+
+**Design-Entscheidung:** Step 0 ist `condition: file_exists` — kein harter Fehler wenn nicht vorhanden. Greenfield-Projekte brauchen es nicht. Für Brownfield ist es explizit als `mandatory_if_present` markiert, damit Agents es nicht überspringen.
 
 ---
 
@@ -119,20 +127,21 @@ Optionales Feld im `workspace`-Objekt:
 | Action | File | Details |
 |--------|------|---------|
 | ✅ Created | `templates/project-analysis-template.md` | Neues Template, 9 Sektionen |
-| ✏️ Modified | `SPEC.md` | Neue Sektion "Before You Write a Manifest" |
-| ✏️ Modified | `AGENT.json` | `workspace.onboarding.steps` → Step 0 |
-| ✏️ Modified | `README.md` | Verweis auf neues Template |
-| ✏️ Modified | `AGENT_SCHEMA.json` | `project_analysis_path` Feld |
+| ✅ Modified | `SPEC.md` | Neue H2 "Before You Write a Manifest" vor Structure Overview |
+| ✅ Modified | `AGENT.json` | `workspace.onboarding.steps` → Step 0 read_project_analysis |
+| ✅ Modified | `README.md` | Verweis auf Template für Existing-Project-Onboarding |
+| ✅ Modified | `AGENT_SCHEMA.json` | `project_analysis_path` optional field in workspace |
 
 ---
 
 ## 6. Next Steps
 
-- [ ] Schritt 1–5 umsetzen
-- [ ] Issue #2 auf GitHub kommentieren + schließen
-- [ ] LTM ingestieren
+- [x] Schritt 1–5 umsetzen
+- [ ] Issue #2 auf GitHub kommentieren + schließen (manuell oder via token)
+- [ ] LTM re-ingestieren
 - [ ] Workpaper nach closed/ verschieben
+- [ ] Issue #3 beginnen
 
 ---
 
-**Status:** 🚧 IN PROGRESS
+**Status:** ✅ COMPLETED
