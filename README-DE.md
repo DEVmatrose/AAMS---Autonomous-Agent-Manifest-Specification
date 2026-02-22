@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/assets/logo.png" alt="AAMS Logo" width="280">
+  <img src="docs/logo_comb.png" alt="AAMS Logo" width="280">
 </p>
 
 # Land in Sicht: Dein Repo als agentischer Arbeitsraum
