@@ -3,7 +3,7 @@
 - **Date:** 2026-02-22
 - **Agent:** Claude Sonnet 4.6
 - **Topic:** GitHub Pages Landing Page — Ein-Datei-Pitch, curl-Onboarding, Repo als lebender Beweis
-- **Status:** 🚧 IN PROGRESS
+- **Status:** ✅ COMPLETED
 
 ---
 
@@ -137,5 +137,5 @@ curl -sO https://raw.githubusercontent.com/aams-spec/aams/main/.agent.json && ec
 - [x] Keine Secrets in diesem Workpaper
 - [x] `docs/index.html` erstellt
 - [x] File Protocol vollständig
-- [ ] LTM-Update
-- [ ] Workpaper nach closed/ verschieben
+- [x] LTM-Update
+- [x] Workpaper nach closed/ verschieben
