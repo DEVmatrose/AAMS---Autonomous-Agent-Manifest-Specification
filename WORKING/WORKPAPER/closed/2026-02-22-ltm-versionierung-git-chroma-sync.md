@@ -2,7 +2,7 @@
 
 **Project:** Autonomous Agent Manifest Specification  
 **Module:** LTM-Architektur / WORKING/  
-**Status:** 🚧 IN PROGRESS  
+**Status:** ✅ COMPLETED  
 **Date:** 2026-02-22
 
 ---
@@ -99,25 +99,22 @@ WORKING/
 
 ---
 
-## Empfehlung (Hypothese)
+## Entscheidung
 
-| Option | Empfehlung |
+**Kein Git-in-Git.**
+
+Git ist bereits vorhanden. Das Repo *ist* die Versionierung. `WORKING/MEMORY/ltm-index.md` ist in Git — es existiert bereits eine vollständige History jedes LTM-Eintrags, jedes Workpapers, jeder Architekturentscheidung. `git log WORKING/MEMORY/ltm-index.md` gibt exakt das, was ein "internes Git" geben würde.
+
+Ein zweites Git-Repo innerhalb des Repos wäre ein Submodule oder ein Bare-Repo in einem Unterordner — konzeptuell unordentlich, erzeugt Synchronisationsprobleme.
+
+| Option | Entscheidung |
 |---|---|
-| Separates Git-Repo für `WORKING/` | ❌ Zu viel Overhead. Submodule-Komplexität. |
-| Git-Sync mit rohen ChromaDB-Files | ❌ Binary-Diffs. Nicht verwendbar. |
-| **Snapshot-Export nach Session, committet ins Haupt-Git** | ✅ Pragmatisch. Reproduzierbar. Rollback möglich. |
-| Dedizierter LTM-Branch im Haupt-Repo | ⚠️ Möglich, aber erhöht Branch-Modell-Komplexität. |
+| Separates Git-Repo für `WORKING/` | ❌ Submodule-Komplexität. Git ist schon da. |
+| Git-Sync mit rohen ChromaDB-Files | ❌ Binary-Blobs, keine verwendbaren Diffs. |
+| Snapshot-Export committed ins Haupt-Git | ❌ Mehraufwand — der Rebuild-Pfad ersetzt das. |
+| **`ltm-rebuild.py` aus `ltm-index.md`** | ✅ Kleiner Aufwand, klarer Mehrwert, kein Overhead. |
 
-**Kernaussage:** Kein separates Git. Aber ein **`ltm_chroma.py snapshot`-Command** der nach jeder Session einen JSON-Dump committet — das ist der Mehrwert ohne die Komplexität.
-
----
-
-## Offene Fragen
-
-- [ ] Wie groß werden Snapshot-JSONs? (114 Chunks × ~500 Zeichen = ~57KB — vertretbar)
-- [ ] Soll der Snapshot automatisch beim `closing_checklist`-Step erzwungen werden?
-- [ ] Macht es Sinn, Snapshots in `WORKING/MEMORY/snapshots/` oder in `WORKING/AGENT-MEMORY/snapshots/` zu legen? (Letzteres würde gitignored bleiben — widerspricht dem Ziel)
-- [ ] Kann `ltm_chroma.py restore` aus einem Snapshot deterministisch denselben Vektorspeicher aufbauen? (Ja, da Hash-Embedding deterministisch ist — kein ML, kein Zufall)
+**Kernaussage:** Der einzige echte Gap ist dass ChromaDB nach einem Rebuild verloren geht — aber nicht blind. `ltm-index.md` ist der Audit-Log aus dem ChromaDB jederzeit deterministisch neu aufgebaut werden kann. Der Rebuild-Pfad *ist* die Versicherung. Ein `ltm-rebuild.py` Script in `WORKING/TOOLS/` schliesst diese Lücke vollständig.
 
 ---
 
@@ -130,11 +127,9 @@ WORKING/
 
 ## Next Steps
 
-- [ ] `ltm_chroma.py snapshot` Command implementieren (JSON-Export aller Chunks)
-- [ ] `ltm_chroma.py restore <file>` Command implementieren
-- [ ] Entscheidung: automatischer Snapshot als Teil des Session-Closing?
-- [ ] Workpaper schließen + LTM ingestieren
+- [ ] `WORKING/TOOLS/ltm-rebuild.py` implementieren: liest `ltm-index.md`, ingested alle referenzierten Dateien in frische ChromaDB
+- [ ] Workpaper schließen + LTM Eintrag #30 anlegen
 
 ---
 
-**Status:** 🚧 IN PROGRESS
+**Status:** ✅ COMPLETED — Entscheidung: kein Git-in-Git. Next Move: `ltm-rebuild.py`.

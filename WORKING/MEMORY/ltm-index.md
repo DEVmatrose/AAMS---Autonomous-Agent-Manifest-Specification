@@ -36,7 +36,7 @@
 
 - **Initialisiert:** 2026-02-22
 - **Letzter Ingest:** 2026-02-22 (Session-Update)
-- **Einträge gesamt:** 29
+- **Einträge gesamt:** 30
 
 ---
 
@@ -73,6 +73,7 @@
 | 027 | 2026-02-22 | SESSION | `WORKING/WORKPAPER/closed/2026-02-22-github-pages-onepager.md` | GitHub Pages Session abgeschlossen. `docs/index.html` fertig, abgenommen. Workpaper nach closed/. |
 | 028 | 2026-02-22 | WORKPAPER | `WORKING/WORKPAPER/2026-02-22-feldtest-independentes-repo.md` | Feldtest-Workpaper angelegt. Testplan, Hypothesen, Beobachtungs-Tabelle. Ausstehend: echtes externes Repo. |
 | 029 | 2026-02-22 | COMMIT | `600f40c` | Repo umbenannt zu `AAMS---Autonomous-Agent-Manifest-Specification`. Git remote aktualisiert. Alle placeholder URLs (`aams-spec/aams`) ersetzt. GitHub Pages Link in README.md + README-DE.md an zentraler Stelle eingefügt. `_spec_url_status` entfernt (URL live). |
+| 030 | 2026-02-22 | DECISION | `WORKING/WORKPAPER/closed/2026-02-22-ltm-versionierung-git-chroma-sync.md` | Entscheidung: kein Git-in-Git. Git ist bereits als Versionierung vorhanden (`ltm-index.md` in Git = vollständige History). Echter Gap: ChromaDB-Rebuild nach Datenverlust. Lösung: `ltm-rebuild.py` in `WORKING/TOOLS/` — deterministischer Rebuild aus `ltm-index.md`. Workpaper geschlossen. |
 
 ---
 
