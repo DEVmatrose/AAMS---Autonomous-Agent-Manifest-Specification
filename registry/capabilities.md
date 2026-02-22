@@ -144,7 +144,7 @@ To propose a new standard capability:
 3. Include at least one real-world use case
 4. The capability is added here once accepted
 
-→ Repository: [DEVmatrose/AAMS---Autonomous-Agent-Manifest-Specification](https://github.com/DEVmatrose/AAMS---Autonomous-Agent-Manifest-Specification)
+→ Repository: [DEVmatrose/AAMS](https://github.com/DEVmatrose/AAMS)
 
 ---
 

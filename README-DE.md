@@ -3,7 +3,7 @@
 > **AAMS — Autonomous Agent Manifest Specification**  
 > `README.md` ist für Menschen. `AGENT.json` ist für Maschinen.
 
-**[→ devmatrose.github.io/Autonomous-Agent-Manifest-Specification](https://devmatrose.github.io/AAMS---Autonomous-Agent-Manifest-Specification/)**
+**[→ devmatrose.github.io/AAMS](https://devmatrose.github.io/AAMS/)**
 
 ---
 

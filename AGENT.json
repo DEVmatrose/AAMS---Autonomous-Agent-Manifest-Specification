@@ -1,6 +1,6 @@
 {
   "_spec": "AAMS/1.0",
-  "_doc": "Autonomous Agent Manifest Specification — https://github.com/DEVmatrose/AAMS---Autonomous-Agent-Manifest-Specification",
+  "_doc": "Autonomous Agent Manifest Specification — https://github.com/DEVmatrose/AAMS",
   "_focus": "local-first",
 
   "identity": {
@@ -38,7 +38,7 @@
       "security_audit"
     ],
     "_note": "shell_execution is NOT listed here because permissions.process.shell_execution is false. A capability without the matching permission is effectively disabled (see SPEC: Permissions vs. Capabilities).",
-    "_capability_registry": "https://github.com/DEVmatrose/AAMS---Autonomous-Agent-Manifest-Specification/blob/main/registry/capabilities.md",
+    "_capability_registry": "https://github.com/DEVmatrose/AAMS/blob/main/registry/capabilities.md",
     "custom_skills": [
       {
         "name": "slack_notify",
@@ -396,7 +396,7 @@
   "governance": {
     "_doc": "Governance and compliance metadata.",
     "spec_version": "1.0",
-    "spec_url": "https://github.com/DEVmatrose/AAMS---Autonomous-Agent-Manifest-Specification",
+    "spec_url": "https://github.com/DEVmatrose/AAMS",
     "validated_with": "aams-validator",
     "last_reviewed": "2026-02-18",
     "review_interval_days": 90,
