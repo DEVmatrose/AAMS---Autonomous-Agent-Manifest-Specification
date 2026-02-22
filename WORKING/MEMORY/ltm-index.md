@@ -36,7 +36,7 @@
 
 - **Initialisiert:** 2026-02-22
 - **Letzter Ingest:** 2026-02-22 (Session-Update)
-- **Einträge gesamt:** 24
+- **Einträge gesamt:** 26
 
 ---
 
@@ -68,6 +68,8 @@
 | 022 | 2026-02-22 | DECISION | `ltm-index.md` + `.agent.json` + `AGENT.json` | Dual-Layer-LTM-Architektur: `ltm-index.md` = Audit-Log (Git), `WORKING/AGENT-MEMORY/` = ChromaDB (Sessions 1+). ChromaDB als Disziplin ab Session 1, nicht als Fallback. |
 | 023 | 2026-02-22 | SPEC | `SPEC-DE.md` | Alle ~10 fehlenden Abschnitte vs. SPEC.md ergänzt: governance-Hinweis, auto_create false-Modus, Whitepaper-Index/Guidelines-Empfehlungen, Schritt-Reihenfolge, workpaper_rules (template_file_quick, Vollversion/Kurzvorlage, Nesting, Metadata-Header), file_tracking (track_moved, track_archived), _ref-Linting, Schema-Striktheitstabelle, Zukünftige Profile Vorbedingungen. 727→809 Zeilen. |
 | 024 | 2026-02-22 | SESSION | `WORKING/WORKPAPER/closed/2026-02-22-hartes-review-v1.md` | Session-Close: hartes-review Workpaper abgeschlossen und nach closed/ verschoben. `AGENT.json` `_spec_url_status: planned` ergänzt. LTM auf 24 Einträge. |
+| 025 | 2026-02-22 | TOOL | `WORKING/TOOLS/ltm_chroma.py` | ChromaDB Tool implementiert. Hash-128 Embedding (kein ML, kein Download). Bug gefixt: Endlosschleife in `chunk_by_size`. Bulk-Ingest: 11 Dateien, 114 Chunks. Query-Test erfolgreich. AGENT-MEMORY aktiv. |
+| 026 | 2026-02-22 | PAGES | `docs/index.html` | GitHub Pages One-Pager erstellt. Dark theme, zero dependencies, Copy-Button, mobile-ready. 7 Sektionen: Problem, curl, Steps, Tools, Proof, Get started, Footer. GitHub Pages Setup ausstehend (manuell). |
 
 ---
 
@@ -103,9 +105,9 @@
 | Backend | Status | Pfad |
 |---|---|---|
 | Markdown-Index | ✅ Aktiv | `WORKING/MEMORY/ltm-index.md` |
-| Vektorspeicher | ⬜ Nicht eingerichtet | `WORKING/AGENT-MEMORY/` |
+| Vektorspeicher | ✅ Aktiv | `WORKING/AGENT-MEMORY/` — 114 Chunks, Hash-128 Embedding |
 
-> Vektorspeicher wird ab **100 Einträgen** Pflicht. Aktuell: **24 Einträge**.
+> Hash-128 Embedding (pure Python, kein ML). Wechsel zu semantischem Embedding: `reset` + `bulk-ingest`.
 
 ---
 

@@ -110,9 +110,9 @@ Core idea:
 - Bootstrap: **complete** (2026-02-22)
 - Spec version: AAMS/1.0
 - Workspace: initialized, all folders present
-- LTM: 24 entries → `WORKING/MEMORY/ltm-index.md` (Audit-Log) + `WORKING/AGENT-MEMORY/` (ChromaDB)
+- LTM: 26 entries → `WORKING/MEMORY/ltm-index.md` (Audit-Log) + `WORKING/AGENT-MEMORY/` (ChromaDB ✅ aktiv, 114 Chunks)
 - Whitepapers: 1 → `WORKING/WHITEPAPER/INDEX.md`
-- Open workpapers: 0 — all closed
+- Open workpapers: 1 → `2026-02-22-github-pages-onepager.md` (docs built, Pages setup pending)
 - READMEs: DE ✅ · EN ✅ (CH archived) — review fixes applied ✅
 - LTM architecture: dual-layer (audit-log + vector store) ✅
 - SPEC path bugs: fixed ✅ · Skills: `bootstrap_workspace` ✅

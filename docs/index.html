@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AAMS — Autonomous Agent Manifest Specification</title>
+  <meta name="description" content="One file. Every repo. Each session builds on the last. AAMS is a declarative standard that gives AI agents a workspace, a memory, and a set of rules.">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --bg-card:   #161b22;
+      --bg-code:   #010409;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --text-muted:#8b949e;
+      --accent:    #58a6ff;
+      --accent-dim:#1f6feb33;
+      --green:     #3fb950;
+      --yellow:    #d29922;
+      --radius:    8px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 16px;
+      min-height: 100vh;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    /* ── Header ── */
+    header {
+      border-bottom: 1px solid var(--border);
+      padding: 48px 0 40px;
+    }
+
+    .badge {
+      display: inline-block;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      border-radius: 20px;
+      padding: 2px 10px;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(28px, 5vw, 40px);
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1.2;
+      margin-bottom: 12px;
+    }
+
+    h1 span { color: var(--accent); }
+
+    .tagline {
+      font-size: 18px;
+      color: var(--text-muted);
+      max-width: 520px;
+    }
+
+    .tagline strong { color: var(--text); }
+
+    /* ── Sections ── */
+    section {
+      padding: 40px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    section:last-of-type { border-bottom: none; }
+
+    h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    p { color: var(--text-muted); margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+    p strong { color: var(--text); }
+
+    /* ── Bullets ── */
+    .bullets { list-style: none; margin: 16px 0; }
+
+    .bullets li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .bullets li:first-child { border-top: 1px solid var(--border); }
+
+    .bullets li::before {
+      content: '→';
+      color: var(--accent);
+      font-family: monospace;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .bullets li strong { color: var(--text); }
+
+    /* ── Code block ── */
+    .code-block {
+      background: var(--bg-code);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin: 20px 0;
+      overflow: hidden;
+    }
+
+    .code-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 14px;
+      background: var(--bg-card);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .code-label {
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .copy-btn {
+      font-family: -apple-system, sans-serif;
+      font-size: 12px;
+      color: var(--accent);
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 3px 10px;
+      cursor: pointer;
+      transition: border-color 0.15s, color 0.15s;
+    }
+
+    .copy-btn:hover { border-color: var(--accent); }
+    .copy-btn.copied { color: var(--green); border-color: var(--green); }
+
+    code {
+      display: block;
+      padding: 16px 18px;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      color: var(--text);
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* ── Steps ── */
+    .steps { list-style: none; margin: 16px 0; }
+
+    .steps li {
+      display: flex;
+      gap: 16px;
+      padding: 14px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .steps li:first-child { border-top: 1px solid var(--border); }
+
+    .step-num {
+      width: 26px;
+      height: 26px;
+      background: var(--accent-dim);
+      border: 1px solid var(--accent);
+      border-radius: 50%;
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    .step-body strong { color: var(--text); display: block; margin-bottom: 2px; }
+    .step-body span { color: var(--text-muted); font-size: 14px; }
+
+    /* ── Proof card ── */
+    .proof-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin: 20px 0;
+    }
+
+    .proof-card code {
+      padding: 0;
+      font-size: 12px;
+      color: var(--text-muted);
+      background: none;
+    }
+
+    .proof-card p { margin-bottom: 8px; }
+
+    .proof-card a {
+      color: var(--accent);
+      text-decoration: none;
+    }
+
+    .proof-card a:hover { text-decoration: underline; }
+
+    /* ── Tools grid ── */
+    .tools {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 16px 0;
+    }
+
+    .tool-chip {
+      font-family: 'SF Mono', monospace;
+      font-size: 12px;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 4px 12px;
+      color: var(--text-muted);
+    }
+
+    /* ── Footer ── */
+    footer {
+      padding: 32px 0 48px;
+      color: var(--text-muted);
+      font-size: 13px;
+    }
+
+    footer a { color: var(--text-muted); text-decoration: none; border-bottom: 1px solid var(--border); }
+    footer a:hover { color: var(--text); }
+
+    footer .links { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 10px; }
+
+    /* ── Responsive ── */
+    @media (max-width: 480px) {
+      header { padding: 32px 0 28px; }
+      section { padding: 28px 0; }
+      h1 { font-size: 26px; }
+      .tagline { font-size: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+
+  <!-- ── Header ── -->
+  <header>
+    <div class="badge">AAMS / 1.0</div>
+    <h1>Every agent.<br><span>One file.</span></h1>
+    <p class="tagline">
+      <strong>No more starting from zero.</strong>
+      AAMS is a declarative standard that gives AI agents a workspace,
+      a memory, and a set of rules — across every tool, every session, every repo.
+    </p>
+  </header>
+
+  <!-- ── Problem ── -->
+  <section>
+    <h2>The problem</h2>
+    <p>
+      You clone a repo. Your agent starts fresh. It has no context, no memory,
+      no agreed-upon structure. Every session it reinvents the wheel.
+      Every tool (Copilot, Cursor, Claude, Codex) needs the same explanation again.
+    </p>
+    <p>
+      <strong>AAMS fixes this with a single file.</strong>
+    </p>
+    <ul class="bullets">
+      <li><strong>One manifest</strong> — <code style="font-family:monospace;font-size:13px">.agent.json</code> at repo root. Every agent reads it. Every tool reads it.</li>
+      <li><strong>One workspace</strong> — <code style="font-family:monospace;font-size:13px">WORKING/</code> folder with session logs, memory, and whitepapers. Built automatically.</li>
+      <li><strong>One memory</strong> — long-term context that survives context resets, tool switches, and new sessions.</li>
+    </ul>
+  </section>
+
+  <!-- ── curl ── -->
+  <section>
+    <h2>Start in 10 seconds</h2>
+    <p>Drop <code style="font-family:monospace;font-size:13px">.agent.json</code> into any repo. Your agent does the rest.</p>
+
+    <div class="code-block">
+      <div class="code-header">
+        <span class="code-label">bash</span>
+        <button class="copy-btn" onclick="copyCode(this, 'curl-cmd')">Copy</button>
+      </div>
+      <code id="curl-cmd">curl -sO https://raw.githubusercontent.com/aams-spec/aams/main/.agent.json</code>
+    </div>
+
+    <p>Hand the file to your agent and tell it to bootstrap. That's it.</p>
+  </section>
+
+  <!-- ── Steps ── -->
+  <section>
+    <h2>What happens next</h2>
+    <ol class="steps">
+      <li>
+        <div class="step-num">1</div>
+        <div class="step-body">
+          <strong>Agent reads .agent.json</strong>
+          <span>Workspace structure, memory location, session rules — all declared.</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">2</div>
+        <div class="step-body">
+          <strong>WORKING/ is created automatically</strong>
+          <span>Folders for workpapers, whitepapers, guidelines, long-term memory.</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">3</div>
+        <div class="step-body">
+          <strong>Every session is documented</strong>
+          <span>Workpaper with file protocol, decisions, next steps. Closed on completion.</span>
+        </div>
+      </li>
+      <li>
+        <div class="step-num">4</div>
+        <div class="step-body">
+          <strong>Memory survives everything</strong>
+          <span>Context resets, tool switches, new collaborators — the audit log is always there.</span>
+        </div>
+      </li>
+    </ol>
+  </section>
+
+  <!-- ── Works with every tool ── -->
+  <section>
+    <h2>Works with every agent</h2>
+    <p>
+      AAMS is not a plugin. It's a file convention.
+      Every tool that reads files picks it up automatically.
+    </p>
+    <div class="tools">
+      <span class="tool-chip">GitHub Copilot</span>
+      <span class="tool-chip">Cursor</span>
+      <span class="tool-chip">Claude Code</span>
+      <span class="tool-chip">OpenAI Codex</span>
+      <span class="tool-chip">Windsurf</span>
+      <span class="tool-chip">Aider</span>
+      <span class="tool-chip">Continue.dev</span>
+      <span class="tool-chip">any agent</span>
+    </div>
+    <p style="margin-top:16px">
+      One file. Switch tools tomorrow. Your workspace stays.
+    </p>
+  </section>
+
+  <!-- ── Proof ── -->
+  <section>
+    <h2>Applied to itself</h2>
+    <p>
+      This project — the project that describes the standard — used AAMS to build itself.
+      Not a demo, not a tutorial. The actual repo.
+    </p>
+    <div class="proof-card">
+      <p><strong>What that looked like:</strong></p>
+      <p>Read <code>.agent.json</code> → created <code>WORKING/</code> → wrote the first workpaper →
+      built the spec → ran a hard external review → fixed four critical issues →
+      ingested 114 chunks into ChromaDB → shipped this page.</p>
+      <p>Everything is documented in <a href="https://github.com/aams-spec/aams/tree/main/WORKING/WORKPAPER/closed" target="_blank" rel="noopener">WORKING/WORKPAPER/closed/</a>.</p>
+    </div>
+    <p>
+      This is not proof of scale. It's proof that the workflow holds for at least one real project —
+      the one you're reading about right now.
+    </p>
+  </section>
+
+  <!-- ── Get started ── -->
+  <section>
+    <h2>Get started</h2>
+    <p>Three files. Pick what you need:</p>
+    <ul class="bullets">
+      <li>
+        <strong>.agent.json</strong> — minimal bootstrap manifest. Drop into any repo.
+        Agent creates the workspace.
+      </li>
+      <li>
+        <strong>AGENT.json</strong> — full annotated reference manifest. Read this to
+        understand what's possible.
+      </li>
+      <li>
+        <strong>SPEC.md</strong> — the complete specification. 830 lines.
+        Everything is defined here.
+      </li>
+    </ul>
+
+    <div class="code-block" style="margin-top:24px">
+      <div class="code-header">
+        <span class="code-label">repository</span>
+        <button class="copy-btn" onclick="copyCode(this, 'repo-url')">Copy</button>
+      </div>
+      <code id="repo-url">https://github.com/aams-spec/aams</code>
+    </div>
+  </section>
+
+  <!-- ── Footer ── -->
+  <footer>
+    <p>AAMS Specification 1.0 — released under <a href="https://creativecommons.org/publicdomain/zero/1.0/" target="_blank" rel="noopener">CC0 1.0 Universal</a>. Public domain.</p>
+    <div class="links">
+      <a href="https://github.com/aams-spec/aams" target="_blank" rel="noopener">GitHub</a>
+      <a href="https://github.com/aams-spec/aams/blob/main/SPEC.md" target="_blank" rel="noopener">Specification</a>
+      <a href="https://github.com/aams-spec/aams/blob/main/AGENT.json" target="_blank" rel="noopener">AGENT.json</a>
+      <a href="https://github.com/aams-spec/aams/blob/main/README.md" target="_blank" rel="noopener">README</a>
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  function copyCode(btn, id) {
+    const text = document.getElementById(id).textContent.trim();
+    navigator.clipboard.writeText(text).then(() => {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    }).catch(() => {
+      // Fallback for older browsers
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+</script>
+
+</body>
+</html>
