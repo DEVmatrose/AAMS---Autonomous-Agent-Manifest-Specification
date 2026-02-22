@@ -2,7 +2,7 @@
 
 **Project:** Autonomous Agent Manifest Specification  
 **Module:** docs/ · .agent.json · Positionierung · Forschungsebene  
-**Status:** 🚧 IN PROGRESS  
+**Status:** ✅ CLOSED  
 **Date:** 2026-02-22
 
 ---
@@ -112,11 +112,11 @@ Ab sofort: Die Forschungsebene ist ein aktiver Projektbereich, aber sekundär. K
 
 ## 5. Offene Punkte / Nächste Schritte
 
-- [ ] `.agent.json` P2-Fix: `ltm_store_backend` als optional/advanced markieren
-- [ ] `SPEC.md` Positionierungs-Formulierung ergänzen ("scaffolding that makes LTM solutions pluggable")
-- [ ] `WP-002-related-work.md` erstellen: Vergleich AAMS vs. verwandte Ansätze
-- [ ] GitHub Issue für Related Work / Research Positioning anlegen
-- [ ] Commit diese Session: curl-Fix + Schema-Fixes + _selfcheck.py + prompts/system.md + AGENT.json typo
+- [x] `.agent.json` P2-Fix: `ltm_store_backend` als optional/advanced markieren (`ltm_store_backend_recommended` + `_ltm_store_backend_note`)
+- [x] `SPEC.md` Positionierungs-Formulierung ergänzen ("scaffolding that makes LTM solutions pluggable")
+- [x] `WP-002-related-work.md` erstellen: Vergleich AAMS vs. verwandte Ansätze
+- [ ] GitHub Issue für Related Work / Research Positioning anlegen (nachgelagert, niedrige Priorität)
+- [x] Commit diese Session: curl-Fix + Schema-Fixes + _selfcheck.py + prompts/system.md + AGENT.json typo
 - [ ] LTM re-ingest
 
 ---
@@ -128,11 +128,13 @@ Ab sofort: Die Forschungsebene ist ein aktiver Projektbereich, aber sekundär. K
 | ✅ Fixed | `docs/index.html` | curl-URL von `aams-spec/aams` auf aktuelles Repo |
 | ✅ Created | `WORKING/TOOLS/_selfcheck.py` | Automatisierter Self-Check (34 Checks) |
 | ✅ Modified | `AGENT_SCHEMA.json` | restricted_write in filesystem, ltm_triggers neue Actions + Felder |
-| ✅ Modified | `SPEC.md` | restricted_write doku, ltm_triggers Tabelle erweitert |
+| ✅ Modified | `SPEC.md` | restricted_write doku, ltm_triggers Tabelle erweitert; Positionierungsabschnitt nach § Philosophy ergänzt |
 | ✅ Modified | `AGENT.json` | workpapers_closed Typo: ./WORKING/WORKPAPER/close → closed |
+| ✅ Modified | `.agent.json` | ltm_store_backend → ltm_store_backend_recommended + _ltm_store_backend_note (P2 fix) |
 | ✅ Created | `prompts/system.md` | Referenz-Vorlage für runtime.system_prompt_file |
 | ✅ Created | `WORKING/DATABASE/` | Fehlendes Verzeichnis aus workspace.structure |
+| ✅ Created | `WORKING/WHITEPAPER/WP-002-related-work.md` | Related Work — AAMS Positionierung gegenüber MemGPT, LangChain Memory, DVC, FIPA |
 
 ---
 
-**Status:** 🚧 IN PROGRESS
+**Status:** ✅ CLOSED

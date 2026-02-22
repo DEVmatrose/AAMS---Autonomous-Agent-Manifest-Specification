@@ -10,6 +10,7 @@
 | # | Datei | Thema | Stand | Status |
 |---|---|---|---|---|
 | WP-001 | [WP-001-aams-overview.md](./WP-001-aams-overview.md) | AAMS Projektübersicht — Was haben wir vor uns? | 2026-02-22 | Aktiv |
+| WP-002 | [WP-002-related-work.md](./WP-002-related-work.md) | Related Work — AAMS vs. MemGPT, LangChain Memory, DVC, FIPA, per-tool conventions | 2026-02-22 | Aktiv |
 
 ---
 

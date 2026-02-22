@@ -39,6 +39,14 @@ WORKING/            → workspace structure (created per AGENT.json)
 - **Versionable** — every AGENT.json carries `_spec: AAMS/1.0`
 - **Extensible** — custom skills and tool registries are possible without breaking the core
 
+**What AAMS is — and what it is not:**
+
+AAMS does not solve the LTM problem. It creates the scaffolding that makes LTM solutions pluggable. The choice of vector store (ChromaDB, LanceDB, pgvector), memory retrieval strategy, or embedding model is deliberately outside the standard. AAMS defines *where* memory lives, *when* it must be used, and *how* sessions are documented — not *how* retrieval works internally.
+
+This separates AAMS from agent memory frameworks (MemGPT, LangChain Memory) that own the full memory stack. AAMS is infrastructure-neutral: any conforming LTM backend can be swapped without changing the manifest structure or session discipline.
+
+> **For framework designers:** `memory.long_term.backend` is the extension point. AAMS specifies the contract (when to query, when to ingest, where the store lives); your framework implements the mechanism.
+
 ---
 
 ## Compliance and Enforcement

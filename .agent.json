@@ -50,8 +50,9 @@
       "ltm_warning_at": 90,
       "ltm_exceeded_behavior": "load_last_20_only",
       "ltm_store": "./WORKING/AGENT-MEMORY",
-      "ltm_store_backend": "chroma",
-      "ltm_store_note": "Vector store is the queryable LTM — use from session 1. ltm-index.md is the human-readable audit log. Both are maintained in parallel. Setup: pip install chromadb",
+      "_ltm_store_backend_note": "OPTIONAL. .agent.json is zero-dependency by design. The backend below is a recommendation, not a requirement. Remove if you don't want ChromaDB. The markdown audit log (ltm_audit_log) works without any vector store.",
+      "ltm_store_backend_recommended": "chroma",
+      "ltm_store_setup": "pip install chromadb  # only needed for vector store; skip for markdown-only LTM",
       "ltm_audit_log": "./WORKING/MEMORY/ltm-index.md"
     },
 
