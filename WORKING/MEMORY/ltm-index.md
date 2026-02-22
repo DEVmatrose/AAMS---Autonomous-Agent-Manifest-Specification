@@ -35,8 +35,8 @@
 ## Status
 
 - **Initialisiert:** 2026-02-22
-- **Letzter Ingest:** 2026-02-22 (Rename DEVmatrose/AAMS)
-- **Einträge gesamt:** 42
+- **Letzter Ingest:** 2026-02-22 (Konsistenz-Fixes + Schema bootstrap_rules)
+- **Einträge gesamt:** 46
 
 ---
 
@@ -86,6 +86,10 @@
 | 040 | 2026-02-22 | WHITEPAPER | `WORKING/WHITEPAPER/WP-002-related-work.md` | Related Work Whitepaper erstellt. AAMS vs. MemGPT/Letta, LangChain Memory, DVC, FIPA ACL, `.cursorrules`/`CLAUDE.md`/per-tool-files. Gap-Analyse: 8 unique AAMS capabilities. Positioning: "the interface layer on top of which those systems operate." |
 | 041 | 2026-02-22 | SESSION | `WORKING/WORKPAPER/closed/2026-02-22-review-analyse-und-forschungsebene.md` | Review-Analyse Session abgeschlossen. Commit 0ad66d6. CLOSED + archiviert. |
 | 042 | 2026-02-22 | RENAME | `AGENT.json` + `docs/index.html` + `registry/capabilities.md` + `README.md` + `README-DE.md` | Repo umbenannt zu `DEVmatrose/AAMS`. Alle URLs aktualisiert: AGENT.json (3x), index.html (curl + footer + proof + repo-url), capabilities.md, README.md + README-DE.md (GitHub Pages → devmatrose.github.io/AAMS). git remote aktualisiert. Commit 5aa8f8c. |
+| 043 | 2026-02-22 | ASSET | `docs/logo_comb.png` + `docs/logo_visual.png` + `docs/logo_text.png` | Logo in Repo aufgenommen (3 Varianten). Primär: logo_comb.png (Text+Bild). Eingebaut in docs/index.html (200px, über Badge) + README.md + README-DE.md (zentriert, 280px). Commit ef3aea3. |
+| 044 | 2026-02-22 | FIX | `prompts/system.md` | Backslash-Korruption entfernt (`\runtime.system_prompt_file\`, `\READ-AGENT.md\`n`). Echter Minimal-System-Prompt als Template eingefügt (MUST/MUST NOT Regeln, Hinweis auf Anpassung). Commit 23d8899. |
+| 045 | 2026-02-22 | FIX | `.agent.json` + `AGENTS.md` + `AGENT_SCHEMA.json` | Konsistenz-Fixes: `_source` aams-spec/aams → DEVmatrose/AAMS; AGENTS.md Footer-Tagline "No context loss" → "No more starting from zero"; AGENT_SCHEMA.json `$id` URL aktualisiert. |
+| 046 | 2026-02-22 | SCHEMA | `AGENT_SCHEMA.json` | `bootstrap_rules` als neues Top-Level-Property eingeführt. 7 Felder: `ltm_markdown_threshold`, `ltm_warning_at`, `ltm_exceeded_behavior`, `ltm_store`, `ltm_store_backend_recommended`, `ltm_store_setup`, `ltm_audit_log`. Validierung: 0 Errors. Schliesst die Schema-Lücke für .agent.json LTM-Felder. |
 
 ---
 
