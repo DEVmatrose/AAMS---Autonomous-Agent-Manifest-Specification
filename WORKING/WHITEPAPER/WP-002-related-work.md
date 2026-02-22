@@ -2,8 +2,9 @@
 
 **WHITEPAPER — AAMS / Autonomous Agent Manifest Specification**
 **Status:** Active
-**Version:** 1.0
+**Version:** 1.1
 **Created:** 2026-02-22
+**Updated:** 2026-02-22 — Gas Town (Yegge, 2026) added
 
 ---
 
@@ -33,6 +34,7 @@ AAMS declares *where* memory lives, *when* it must be queried, and *how* session
 | **`CLAUDE.md` / `CODEX.md`** | Tool-specific instruction injection | File in repo | Tool-specific | AAMS unifies: `AGENTS.md` + `.agent.json` replace all per-tool files as the canonical entry point |
 | **`.github/copilot-instructions.md`** | Copilot-specific context | File in repo | GitHub Copilot only | Bridged by AAMS: `AGENTS.md` redirects Copilot to the canonical AAMS context |
 | **OpenAI Assistants API** | Thread + file store | Cloud-managed | Per-assistant | No overlap; AAMS is repo-local, not cloud-hosted |
+| **Gas Town** (Yegge, 2026) | Git Worktrees + persistent workspace + Beads task DB | Framework-internal (`~/gas-town/`) | Multi-agent orchestration (10-30+ parallel) | Complementary + validating: Gas Town explicitly recommends `AGENT.md`/`CLAUDE.md` as required control layer — that layer is what AAMS standardizes |
 
 ---
 
@@ -103,6 +105,49 @@ The Foundation for Intelligent Physical Agents (FIPA) developed multi-agent comm
 
 ---
 
+### Gas Town
+*Yegge, S. (2026). Gas Town — Multi-Agent Orchestrator for Coding Agents. Published 2026-01-01.*
+*Heise Developer coverage: heise.de/-11177514 (2026-02-21)*
+*GitHub: https://github.com/steveyegge/gastown*
+
+Gas Town is a multi-agent orchestration framework for coding agents, released January 1, 2026 by Steve Yegge (formerly Amazon, Google, Sourcegraph). Written in Go with AI assistance, it coordinates 10–30+ parallel coding agents (primarily Claude Code with 200k context window) against one or more repositories.
+
+**Architecture:** Gas Town follows a Kubernetes-inspired Control Plane / Data Plane separation:
+- *Control Plane:* Mayor (task decomposition, convoy dispatch), Deacon (system monitoring, zombie cleanup), Witness (per-agent oversight within a Rig)
+- *Data Plane:* Polecats (disposable worker agents operating in Git Worktrees), Refinery (merge conflict resolution, quality review), Sweeps (periodic architecture drift correction)
+- *Coordination primitives:* Mailboxes (Erlang-inspired async messaging between long-lived agents), Handoffs (synchronous context transfer when context window fills), Beads (task database / Kanban units), Convoys (task bundles dispatched to Polecats)
+
+**What Gas Town solves:** The execution and coordination problem — how do you run 20 agents in parallel, prevent merge hell, prevent duplicated work, and maintain code quality without human reviewers reviewing every line?
+
+**What Gas Town explicitly does NOT solve — and delegates to rule files:**
+This is the critical observation for AAMS positioning. From the Heise article (Sweeps section):
+
+> *"sollten Developer aber nicht auf die gängigen Kontrollmethoden wie Rule-Dateien (AGENT.md oder CLAUDE.md) und statische Quality Gates wie Fitness Functions oder statische Codeanalyse verzichten"*
+
+Translated: *"developers should not forego the common control methods such as rule files (AGENT.md or CLAUDE.md) and static quality gates."*
+
+Gas Town's own documentation recommends `AGENT.md`/`CLAUDE.md` as the complementary control layer. The framework orchestrates agents but explicitly outsources workspace contract and instruction discipline to per-repo files.
+
+**AAMS Relationship: Complementary + Validating**
+
+Gas Town and AAMS operate at different architectural layers:
+
+| | Gas Town | AAMS |
+|---|---|---|  
+| Layer | Execution / orchestration | Repo contract / workspace manifest |
+| What it does | Runs and coordinates agents | Declares workspace structure, memory, permissions |
+| Where state lives | Framework-internal (`~/gas-town/<rig>/`) | In the repo (`WORKING/`) |
+| Replaceability model | Cattle (agents disposable) | Cattle (agents read contract and resume) |
+| Rule files | Recommends `AGENT.md`/`CLAUDE.md` | Provides the standardized implementation of exactly that |
+
+The "cattle not pets" philosophy is where both systems converge: if Polecats are disposable and replaceable, they need a standardized repo contract to pick up work without human re-explanation. A `.agent.json` at repo root is precisely that contract.
+
+**The validation point:** Gas Town is one of the most ambitious multi-agent systems currently in public development, and it independently arrives at the same need AAMS addresses — structured rule files at repo level. The fact that it delegates this to `AGENT.md`/`CLAUDE.md` rather than solving it in the framework itself is exactly the architectural gap AAMS fills.
+
+**Potential integration:** A Gas Town Polecat bootstrapping a new repo could read `.agent.json` to understand: workspace structure (where to create files), permissions (what it must not touch), LTM location (where prior session context lives), and session discipline (workpaper protocol). This would require zero changes to Gas Town — it's a file convention, not a plugin.
+
+---
+
 ## Gap Analysis: What Nothing Else Covers
 
 After reviewing adjacent work, these capabilities are unique to AAMS or not addressed by existing standards:
@@ -117,6 +162,7 @@ After reviewing adjacent work, these capabilities are unique to AAMS or not addr
 | Cross-tool canonical entry point | Partially (AGENTS.md convention emerging) | Core |
 | LTM trigger conditions (threshold-based) | No | Extended |
 | Skill registry + tool declarations | Partially (OpenAI Functions) | Extended |
+| Multi-agent repo contract (what Polecats read on spawn) | No — Gas Town delegates this to `AGENT.md`/`CLAUDE.md` | Core |
 
 ---
 
@@ -124,7 +170,9 @@ After reviewing adjacent work, these capabilities are unique to AAMS or not addr
 
 AAMS occupies a layer that no existing standard or framework fills: **the coordination contract between a developer's repository and any AI coding agent that enters it.** It is not a memory framework, not a runtime, and not a workflow engine. It is the interface layer on top of which those systems operate.
 
-The closest analogy is a constitution for a codebase: it declares the workspace structure, agent role, permissions, and session discipline — and is indifferent to which agent or backend fulfills those declarations.
+The Gas Town example (2026) is particularly instructive: one of the most ambitious multi-agent orchestration systems currently in public development independently arrives at the need for repo-level rule files (`AGENT.md`/`CLAUDE.md`) as a required complement to runtime orchestration. AAMS is the standardized, machine-readable, cross-tool implementation of exactly that need.
+
+The closest analogy is a constitution for a codebase: it declares the workspace structure, agent role, permissions, and session discipline — and is indifferent to which agent, orchestrator, or backend fulfills those declarations.
 
 ---
 
@@ -134,6 +182,8 @@ The closest analogy is a constitution for a codebase: it declares the workspace 
 - LangChain Documentation: [https://docs.langchain.com/docs/components/memory](https://docs.langchain.com/docs/components/memory)
 - DVC Documentation: [https://dvc.org/doc](https://dvc.org/doc)
 - FIPA Specifications: [http://www.fipa.org/specs/](http://www.fipa.org/specs/)
+- Yegge, S. (2026). *Gas Town.* GitHub: https://github.com/steveyegge/gastown. Released 2026-01-01.
+- Eichhorst, I. (2026). *Gas Town: Mad-Max-inspiriertes Framework für Coding-Agenten.* heise Developer, 2026-02-21. https://heise.de/-11177514
 - AAMS Specification: `SPEC.md` in this repository
 
 ---
