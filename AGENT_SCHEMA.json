@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/aams-spec/aams/schema/v1.0/AGENT_SCHEMA.json",
+  "$id": "https://github.com/DEVmatrose/AAMS/schema/v1.0/AGENT_SCHEMA.json",
   "title": "AAMS — Autonomous Agent Manifest Specification",
   "description": "JSON Schema for validating AGENT.json files (Version 1.0, local-first).",
   "version": "1.0.0",
@@ -273,6 +273,46 @@
       "type": "object",
       "description": "Free-form field for provider-specific extensions, experimental features, and project-specific data. No fixed schema — anything allowed.",
       "additionalProperties": true
+    },
+
+    "bootstrap_rules": {
+      "type": "object",
+      "description": "LTM configuration and bootstrap behaviour for the minimal .agent.json manifest. All fields optional.",
+      "properties": {
+        "ltm_markdown_threshold": {
+          "type": "integer",
+          "description": "Entry count at which the agent switches to load_last_n_only fallback behaviour.",
+          "minimum": 1
+        },
+        "ltm_warning_at": {
+          "type": "integer",
+          "description": "Entry count at which the agent emits a developer warning that LTM is approaching threshold.",
+          "minimum": 1
+        },
+        "ltm_exceeded_behavior": {
+          "type": "string",
+          "description": "Behaviour when ltm_markdown_threshold is exceeded without a vector store.",
+          "enum": ["load_last_20_only", "load_last_n_only", "warn_only", "block"]
+        },
+        "ltm_store": {
+          "type": "string",
+          "description": "Path to the LTM vector store directory (e.g. ChromaDB)."
+        },
+        "ltm_store_backend_recommended": {
+          "type": "string",
+          "description": "OPTIONAL. Recommended vector store backend. .agent.json is zero-dependency by design — this is a hint, not a requirement."
+        },
+        "ltm_store_setup": {
+          "type": "string",
+          "description": "Human-readable setup instruction for the recommended backend (e.g. pip install chromadb)."
+        },
+        "ltm_audit_log": {
+          "type": "string",
+          "description": "Path to the human-readable LTM audit log (markdown). Works without any vector store."
+        }
+      },
+      "patternProperties": { "^_": true },
+      "additionalProperties": false
     },
 
     "workspace": {

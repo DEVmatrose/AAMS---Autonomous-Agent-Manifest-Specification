@@ -53,4 +53,4 @@ WORKING/
 
 ---
 
-*AAMS/1.0 — One file. Every repo. No context loss.*
+*AAMS/1.0 — One file. Every repo. No more starting from zero.*

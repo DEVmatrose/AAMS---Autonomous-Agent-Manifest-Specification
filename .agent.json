@@ -1,7 +1,7 @@
 {
   "_spec": "AAMS-MINI/1.0",
   "_doc": "Minimal Agent Bootstrap Contract. Drop this file into any repository. Any agent reading this file MUST create the workspace structure below if it does not exist. Idempotent: safe to read multiple times.",
-  "_source": "https://github.com/aams-spec/aams",
+  "_source": "https://github.com/DEVmatrose/AAMS",
 
   "workspace": {
     "root": "./WORKING",
