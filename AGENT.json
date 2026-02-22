@@ -107,7 +107,8 @@
       "backend": "chroma",
       "_backend_enum": ["none", "lancedb", "chroma", "sqlite", "pgvector"],
       "path": "./WORKING/AGENT-MEMORY",
-      "_ref": "workspace.structure.memory"
+      "_ref": "workspace.structure.ltm_store",
+      "_note": "Vector store is the queryable LTM from session 1. Human-readable audit log is at workspace.structure.memory (ltm-index.md). Both are maintained in parallel."
     },
     "session": {
       "persist": true,
@@ -301,7 +302,7 @@
         "action": "notify_developer",
         "priority": "mandatory",
         "threshold": 90,
-        "description": "LTM index approaching 100 entries: agent MUST actively inform developer that a vector store backend is required. Recommended: ChromaDB under ./WORKING/AGENT-MEMORY/. Developer may ignore — but context degradation is their responsibility."
+        "description": "LTM audit log has 90+ entries and no vector store found. Agent notifies developer: without WORKING/AGENT-MEMORY/ older context becomes blind above 100 entries. Recommended action: pip install chromadb — agent will ingest automatically on next session start."
       },
       {
         "event": "ltm_index_threshold_exceeded",
@@ -309,7 +310,7 @@
         "priority": "mandatory",
         "threshold": 100,
         "load_last_n": 20,
-        "description": "LTM index exceeds 100 entries without vector store: agent loads only last 20 entries. Older context is blind. Agent must state this limitation explicitly at session start."
+        "description": "LTM audit log exceeds 100 entries with no vector store present. Agent loads only last 20 entries and states this explicitly at session start. This is the fallback — the intended path is WORKING/AGENT-MEMORY/ from session 1."
       },
       {
         "event": "new_workpaper",
@@ -372,6 +373,7 @@
     "_doc": "Governance and compliance metadata.",
     "spec_version": "1.0",
     "spec_url": "https://github.com/aams-spec/aams",
+    "_spec_url_status": "planned — URL not yet live, will resolve when repo is public",
     "validated_with": "aams-validator",
     "last_reviewed": "2026-02-18",
     "review_interval_days": 90,

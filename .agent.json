@@ -13,6 +13,7 @@
       "workpapers":  "./WORKING/WORKPAPER",
       "workpapers_closed": "./WORKING/WORKPAPER/closed",
       "memory":      "./WORKING/MEMORY",
+      "ltm_store":   "./WORKING/AGENT-MEMORY",
       "logs":        "./WORKING/LOGS",
       "guidelines":  "./WORKING/GUIDELINES",
       "tools":       "./WORKING/TOOLS"
@@ -48,7 +49,10 @@
       "ltm_markdown_threshold": 100,
       "ltm_warning_at": 90,
       "ltm_exceeded_behavior": "load_last_20_only",
-      "_ltm_note": "Above 100 entries the markdown index becomes too large for agent context. Agent must notify developer and recommend a vector store backend (ChromaDB, LanceDB, etc.)."
+      "ltm_store": "./WORKING/AGENT-MEMORY",
+      "ltm_store_backend": "chroma",
+      "ltm_store_note": "Vector store is the queryable LTM — use from session 1. ltm-index.md is the human-readable audit log. Both are maintained in parallel. Setup: pip install chromadb",
+      "ltm_audit_log": "./WORKING/MEMORY/ltm-index.md"
     },
 
     "secrets_policy": {

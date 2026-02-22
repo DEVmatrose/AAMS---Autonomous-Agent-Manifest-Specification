@@ -1,25 +1,34 @@
-# LTM — Long-Term Memory Index
+# LTM — Audit-Log
 ## Autonomous Agent Manifest Specification
 
-> Dieser Index dokumentiert was im LTM gespeichert ist, wann es ingested wurde und was der Inhalt ist.
-> Jeder Agent pflegt diesen Index bei jedem Ingest-Vorgang.
+> **Dieses Dokument ist das menschenlesbare Audit-Log des LTM.**  
+> Das query-fähige LTM liegt unter `WORKING/AGENT-MEMORY/` (ChromaDB oder kompatibel).  
+> Jeder Agent ingested nach jeder Session in beide: den Audit-Log (hier) und den Vektorspeicher.
 
 ---
 
-## ⚠️ Schwellenwert-Regel (verbindlich)
+## LTM-Architektur
 
-| Einträge | Zustand | Pflichtaktion |
+| Komponente | Pfad | Zweck |
 |---|---|---|
-| < 100 | Markdown-Index ausreichend | Weiter pflegen |
-| ≥ 90 | **Warnung** | Agent informiert Entwickler aktiv: Migration zu Vektorspeicher empfohlen |
-| ≥ 100 | **Kritisch** | Agent lädt nur die letzten 20 Einträge — älterer Kontext ist blind. Migration überfällig. |
+| Audit-Log | `WORKING/MEMORY/ltm-index.md` | Menschenlesbar. Was wurde wann ingested. Immer im Git. |
+| Vektorspeicher | `WORKING/AGENT-MEMORY/` | Querybar. Semantische Suche. Ab Session 1 aktiv. In `.gitignore`. |
 
-**Warum:** Ab 100 Einträgen ist der vollständige Index zu groß für einen Agenten-Kontext. Jeder vollständige Abruf erzeugt enormen Overhead. Ältere Einträge werden de facto unsichtbar.
+**Warum beides:** Der Audit-Log ist die Wahrheit die Menschen lesen können. Der Vektorspeicher ist die Wahrheit die Agenten effizient abfragen können. Ohne Vektorspeicher degradiert jede LTM-Abfrage ab ~100 Einträgen zur Blindheit.
 
-**Empfohlene Backends:** ChromaDB (lokal), LanceDB, SQLite-VSS, pgvector
+**Empfohlenes Backend:** ChromaDB (lokal, kein API-Key, Open Source)  
+**Setup:** `pip install chromadb` → `WORKING/AGENT-MEMORY/` wird automatisch angelegt beim ersten Ingest.
 
-**Agent-Pflicht ab Eintrag 90:**
-> *„Der LTM-Index nähert sich dem Schwellenwert (aktuell: N Einträge). Ab 100 Einträgen wird ein Vektorspeicher-Backend benötigt. Empfehlung: ChromaDB unter `./WORKING/AGENT-MEMORY/` einrichten."*
+**Fallback ohne Vektorspeicher:**
+
+| Einträge | Zustand | Was der Agent tut |
+|---|---|---|
+| < 90 | Normal | Audit-Log vollständig laden |
+| ≥ 90 | **Warnung** | Agent meldet: Vektorspeicher fehlt, Kontext wird bald blind |
+| ≥ 100 | **Blind** | Agent lädt nur die letzten 20 Einträge — ohne Vektorspeicher gibt es keine andere Option |
+
+**Agent-Pflicht ab Eintrag 90 (wenn kein Vektorspeicher vorhanden):**
+> *„Der LTM-Audit-Log hat aktuell N Einträge. Kein Vektorspeicher gefunden unter `WORKING/AGENT-MEMORY/`. Ab 100 Einträgen ist älterer Kontext blind. Bitte `pip install chromadb` ausführen — der Agent ingested beim nächsten Sessionstart automatisch."*
 
 ---
 
@@ -27,7 +36,7 @@
 
 - **Initialisiert:** 2026-02-22
 - **Letzter Ingest:** 2026-02-22 (Session-Update)
-- **Einträge gesamt:** 19
+- **Einträge gesamt:** 24
 
 ---
 
@@ -54,6 +63,11 @@
 | 017 | 2026-02-22 | SESSION | `WORKING/WORKPAPER/closed/` | Session-Close: beide Workpaper (bootstrap-session + repo-analyse) nach closed/ verschoben. LTM auf 17 Einträge. |
 | 018 | 2026-02-22 | REVIEW | root | Hartes Review: README-CH.md nach archive/ verschoben. 6 Pfadfehler in SPEC.md + SPEC-DE.md korrigiert: `./WORKING/docs`→`WHITEPAPER`, `close`→`closed`, `AGENT-MEMORY`→`MEMORY`. |
 | 019 | 2026-02-22 | DECISION | `.gitignore` + `.agent.json` | Gitignore-Architekturentscheidung: `WORKING/MEMORY/` nicht mehr ignoriert (ltm-index.md ist Kollaborationsartefakt). `WORKING/LOGS/` bleibt ignoriert. Vektorspeicher-Patterns auskommentiert vorbereitet. Stale-Einträge entfernt. |
+| 020 | 2026-02-22 | WORKPAPER | `WORKING/WORKPAPER/2026-02-22-hartes-review-v1.md` | Hartes Review erfasst und bewertet. 8 Kritikpunkte gewichtet, 4 rote Prioritäten identifiziert. |
+| 021 | 2026-02-22 | README | `README.md` + `README-DE.md` | 4 rote Prioritäten umgesetzt: Tagline geändert, Cross-Tool-Sektion als Lead, Hierarchie-Tabelle, Proof-Abschnitt ehrlich umformuliert. DE von EN abgeleitet. |
+| 022 | 2026-02-22 | DECISION | `ltm-index.md` + `.agent.json` + `AGENT.json` | Dual-Layer-LTM-Architektur: `ltm-index.md` = Audit-Log (Git), `WORKING/AGENT-MEMORY/` = ChromaDB (Sessions 1+). ChromaDB als Disziplin ab Session 1, nicht als Fallback. |
+| 023 | 2026-02-22 | SPEC | `SPEC-DE.md` | Alle ~10 fehlenden Abschnitte vs. SPEC.md ergänzt: governance-Hinweis, auto_create false-Modus, Whitepaper-Index/Guidelines-Empfehlungen, Schritt-Reihenfolge, workpaper_rules (template_file_quick, Vollversion/Kurzvorlage, Nesting, Metadata-Header), file_tracking (track_moved, track_archived), _ref-Linting, Schema-Striktheitstabelle, Zukünftige Profile Vorbedingungen. 727→809 Zeilen. |
+| 024 | 2026-02-22 | SESSION | `WORKING/WORKPAPER/closed/2026-02-22-hartes-review-v1.md` | Session-Close: hartes-review Workpaper abgeschlossen und nach closed/ verschoben. `AGENT.json` `_spec_url_status: planned` ergänzt. LTM auf 24 Einträge. |
 
 ---
 
@@ -91,7 +105,7 @@
 | Markdown-Index | ✅ Aktiv | `WORKING/MEMORY/ltm-index.md` |
 | Vektorspeicher | ⬜ Nicht eingerichtet | `WORKING/AGENT-MEMORY/` |
 
-> Vektorspeicher wird ab **100 Einträgen** Pflicht. Aktuell: **12 Einträge**.
+> Vektorspeicher wird ab **100 Einträgen** Pflicht. Aktuell: **24 Einträge**.
 
 ---
 

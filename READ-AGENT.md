@@ -110,11 +110,10 @@ Core idea:
 - Bootstrap: **complete** (2026-02-22)
 - Spec version: AAMS/1.0
 - Workspace: initialized, all folders present
-- LTM: 19 entries → `WORKING/MEMORY/ltm-index.md`
+- LTM: 24 entries → `WORKING/MEMORY/ltm-index.md` (Audit-Log) + `WORKING/AGENT-MEMORY/` (ChromaDB)
 - Whitepapers: 1 → `WORKING/WHITEPAPER/INDEX.md`
-- Open workpapers: 0
-- READMEs: DE ✅ · EN ✅ (CH archived)
-- SPEC path bugs: fixed (SPEC.md + SPEC-DE.md) ✅
-- Skills: `bootstrap_workspace` in `AGENT.json` ✅
-- Gitignore: `WORKING/MEMORY/` nicht ignoriert (Kollaboration) ✅
+- Open workpapers: 0 — all closed
+- READMEs: DE ✅ · EN ✅ (CH archived) — review fixes applied ✅
+- LTM architecture: dual-layer (audit-log + vector store) ✅
+- SPEC path bugs: fixed ✅ · Skills: `bootstrap_workspace` ✅
 - GitHub Issues #1–3: addressed, ready to close on GitHub

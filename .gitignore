@@ -1,10 +1,12 @@
 # AAMS Workspace — runtime artifacts (not for version control)
 #
 # WORKING/MEMORY/ltm-index.md is intentionally NOT ignored.
-# It is the shared collaboration artifact — every agent and developer
-# needs it to have context. Conflicts are minimal (append-only table).
+# It is the human-readable audit log — committed, always in Git, readable by humans.
 #
-# WORKING/WHITEPAPER/ and WORKING/WORKPAPER/ are also committed —
+# WORKING/AGENT-MEMORY/ is the queryable vector store (ChromaDB).
+# It is ignored — binary data, not diffable, rebuilt from the audit log on first ingest.
+#
+# WORKING/WHITEPAPER/ and WORKING/WORKPAPER/ are committed —
 # they are the session and architecture history of the project.
 
 # Logs: machine-generated runtime output, no collaboration value
@@ -13,8 +15,6 @@ WORKING/LOGS/
 # Temporary workpaper drafts
 WORKING/WORKPAPER/*.tmp
 
-# Vector store backends (binary data, not diffable)
-# Uncomment when using a vector store for LTM
-# WORKING/AGENT-MEMORY/
-# WORKING/MEMORY/*.db
-# WORKING/MEMORY/chroma/
+# Vector store (binary data, not diffable — rebuilt from ltm-index.md on first ingest)
+WORKING/AGENT-MEMORY/
+WORKING/MEMORY/*.db

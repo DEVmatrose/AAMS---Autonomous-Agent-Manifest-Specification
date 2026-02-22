@@ -53,6 +53,46 @@ No `npm install`. No `pip install`. No setup.
 
 ---
 
+## Works With Every Agent. Not Just One.
+
+Cursor has `.cursorrules`. Copilot has `.github/copilot-instructions.md`. Claude Code has `CLAUDE.md`. Codex has `AGENTS.md`. Windsurf has `.windsurfrules`.
+
+Every tool has its own convention. If you commit to one, you lock out the others.
+
+AAMS solves this with a single bridge file:
+
+```
+AGENTS.md  ←  read by all major AI tools
+    ↓
+READ-AGENT.md  ←  project context and agent contract
+    ↓
+.agent.json    ←  bootstrap rules and workspace structure
+```
+
+One setup. Copilot, Cursor, Claude Code, Codex, Windsurf, Aider, Continue.dev — they all read `AGENTS.md`. From there, they reach the same contract. No duplication. No tool lock-in.
+
+**That's the actual differentiator.** Not the folder structure. The portability.
+
+---
+
+## Which File Do I Need?
+
+Three files, three different purposes — not three versions of the same thing:
+
+| File | Who reads it | What it is |
+|---|---|---|
+| `AGENTS.md` | Every AI tool (Copilot, Cursor, Claude Code, Codex, Windsurf...) | Thin bridge. Points to READ-AGENT.md. |
+| `.agent.json` | Any agent doing bootstrap | Minimal contract. Drop into any repo. |
+| `AGENT.json` | Reference / full manifest | Fully annotated template. All fields, all options. |
+
+**Starting a new project?** Copy `.agent.json`. Done.
+
+**Building a framework or harness?** Use `AGENT.json` as the reference manifest.
+
+**Working with Copilot, Cursor, etc.?** `AGENTS.md` in the root is all you need — it routes them to the rest automatically.
+
+---
+
 ## The Three-Layer Documentation Model
 
 The actual core of AAMS. Three layers, mandatory:
@@ -64,17 +104,18 @@ Created at session start, archived at session end. With a complete file protocol
 Stable architecture truth. Written once, updated only on architecture decisions. Never deleted.
 
 **Long-Term Memory** — What have we learned over time?  
-After every session the workpaper is ingested into LTM. Session N+1 queries LTM before starting. No more context loss.
+After every session the workpaper is ingested into LTM. Session N+1 queries LTM before starting. Each session builds on the last.
 
 ```
 WORKING/
-├── WHITEPAPER/     ← Stable system truth. Never delete.
-├── WORKPAPER/      ← Active session work. One file per session.
-│   └── closed/     ← Archived completed sessions.
-└── MEMORY/         ← Long-term memory. Cross-session context.
+├── WHITEPAPER/       ← Stable system truth. Never delete.
+├── WORKPAPER/        ← Active session work. One file per session.
+│   └── closed/        ← Archived completed sessions.
+├── MEMORY/           ← Human-readable audit log. In Git. Always.
+└── AGENT-MEMORY/     ← Vector store (ChromaDB). Queryable LTM. In .gitignore.
 ```
 
-A good developer does this in their head. An agent needs it explicit and persistent.
+Two layers, both mandatory: the **audit log** (`ltm-index.md`) is what humans read and what survives a fresh clone. The **vector store** (`AGENT-MEMORY/`) is what agents query efficiently. Without the vector store, context degrades after ~100 sessions. Without the audit log, a fresh clone starts blind.
 
 ---
 
@@ -106,15 +147,15 @@ Long-term goal: AAMS becomes the de-facto standard that every agent recognizes i
 
 ---
 
-## Proof: AAMS Tested on Itself
+## Applied to Itself
 
-This project — the project that describes the standard — applied it live today.
+This project — the project that describes the standard — built its own workspace using AAMS on day one.
 
-One `.agent.json` read. Structure created. First workpaper written. First whitepaper written. LTM populated. Three open GitHub issues resolved.
+One `.agent.json` read. Structure created. First workpaper written. First whitepaper written. LTM populated. Three open GitHub issues resolved. All of it documented, traceable, reproducible.
 
-Everything documented. Everything traceable. No context loss.
+That's not proof that AAMS works at scale, in legacy repos, or with uncooperative agents. It's a working example of the workflow — what a session looks like, what gets created, what survives into the next session.
 
-**That's the proof.**
+The real test is your project.
 
 ---
 
@@ -135,4 +176,4 @@ Everything documented. Everything traceable. No context loss.
 
 ---
 
-*One file. Every repo. No more chaos.*
+*One file. Every repo. No more starting from zero.*

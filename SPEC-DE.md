@@ -380,6 +380,8 @@ Metadaten zur Spec-Compliance und Review-Planung.
 }
 ```
 
+> **Hinweis zu `_spec` vs. `governance.spec_version`:** Das Root-Level-Feld `_spec` (z.B. `"AAMS/1.0"`) ist der **kanonische, maschinenlesbare** Versionsidentifikator. `governance.spec_version` ist optionale, menschenorientierte Metadaten für Governance-Dashboards und Compliance-Tracking. Bei Konflikt hat `_spec` Vorrang. Validatoren MÜSSEN `_spec` für Versionserkennung verwenden.
+
 ---
 
 ### `metadata` (optional)
@@ -423,7 +425,7 @@ Wenn ein Agent ein Repository klont und `AGENT.json` findet:
 |---------------------|---------|---------|--------------|
 | `root`              | string  | ✅      | Wurzelverzeichnis der Arbeitsstruktur |
 | `entry_point`       | string  | ✅      | Datei die der Agent zuerst liest |
-| `auto_create`       | boolean | ✅      | Immer `true` — Agent MUSS Struktur anlegen |
+| `auto_create`       | boolean | ✅      | `true` (Standard): Agent MUSS fehlende Ordner anlegen. `false`: Nur-Lesen-Modus — Agent arbeitet mit vorhandener Struktur, legt keine Ordner an und ändert keine. |
 | `structure`         | object  | ✅      | Key-Value-Paare: Rolle → Pfad (Single Source of Truth) |
 | `onboarding`        | object  | ⬜      | Schritte bei Ersteinrichtung |
 | `workpaper_rules`   | object  | ⬜      | Regeln für Workpaper-Erstellung und -Abschluss |
@@ -447,6 +449,12 @@ Wenn ein Agent ein Repository klont und `AGENT.json` findet:
 Zusätzliche Rollen können frei definiert werden (das Schema erlaubt beliebige String-Keys).
 
 > **Hinweis:** Die oben genannten Rollen sind empfohlene Konventionen. Nur `structure` selbst ist Pflicht — welche Schlüssel darin stehen, entscheidet das Projekt. Ein minimales Setup könnte nur `workpapers` enthalten.
+
+**Empfohlene Konventionen:**
+
+- **Whitepaper-Index:** Projekte mit mehr als ein paar Whitepapers SOLLTEN eine `Whitepaper-Index.md` im Whitepapers-Ordner pflegen. Sie dient als Inhaltsverzeichnis mit Kategorien, Status und einer empfohlenen Lesereihenfolge. Ohne Index können Agenten nicht effizient durch 20+ Dokumente navigieren. Eine Vorlage ist unter `templates/whitepaper-index-template.md` bereitgestellt.
+
+- **Guidelines-Inhalt:** Der `guidelines`-Ordner enthält typischerweise Coding-Standards (Namenskonventionen, Auth-Patterns, Datenzugriffs-Regeln), Architektur-Regeln und Framework-spezifische Konventionen. Diese Dokumente sind projektspezifisch und werden von Menschen verfasst oder vom Agenten während des Onboardings abgeleitet. Beispiel: eine `DEV-Coding-Standards.md` die Auth-Patterns, Repository-Patterns, API-Konventionen und eine Checkliste für Code-Reviews definiert.
 
 #### `onboarding` — Ersteinrichtung
 
@@ -515,6 +523,26 @@ Der Repository-Scan SOLL folgende Abschnitte produzieren:
 
 Das Ergebnis wird in `write_to` definiert — Standard ist `first_workpaper` (= das Onboarding-Protokoll).
 
+**Schritt-Reihenfolge: Scan (Schritt 3) vor Workpaper (Schritt 7)**
+
+Die Standard-Onboarding-Reihenfolge erzeugt eine implizite Abhängigkeit: `scan_repository` (Schritt 3) deklariert `write_to: "first_workpaper"`, aber die Workpaper-Datei wird physisch erst in Schritt 7 (`create_first_workpaper`) angelegt. Das ist beabsichtigt — Schritte 3–6 **sammeln Daten**, Schritt 7 **materialisiert** sie.
+
+```
+Schritt 3: scan_repository       → Ergebnisse im Arbeitsgedächtnis gehalten
+Schritt 4: create_entry_point    → Ergebnisse im Arbeitsgedächtnis gehalten
+Schritt 5: create_guidelines     → Ergebnisse im Arbeitsgedächtnis gehalten
+Schritt 6: index_ltm             → Ergebnisse im Arbeitsgedächtnis gehalten
+Schritt 7: create_first_workpaper → ALLE gesammelten Ergebnisse in Workpaper-Datei geschrieben
+```
+
+**Zwei gültige Implementierungsstrategien:**
+
+1. **Buffer-then-write (Standard):** Der Agent hält Scan-Ergebnisse, Guidelines-Zusammenfassung und LTM-Status im Arbeitsgedächtnis. Schritt 7 konsolidiert alles in ein Workpaper. Das produziert das vollständigste Onboarding-Dokument.
+
+2. **Living Document:** Der Agent erstellt die Workpaper-Datei früh (bei Schritt 3) und hängt an sie an wenn nachfolgende Schritte abgeschlossen werden. Das ist akzeptabel — Implementierungen DÜRFEN Schritte umordnen oder kombinieren — aber das Workpaper kann unvollständig sein wenn ein späterer Schritt fehlschlägt.
+
+Beide Strategien sind gültig. Die Spec definiert **was** produziert wird, nicht **wann** die Datei auf die Platte geschrieben wird.
+
 #### `workpaper_rules` — Session-Hygiene
 
 Jedes Workpaper folgt festen Regeln. Dies ist das Ergebnis realer Praxiserfahrung: Ohne systematisches Datei-Tracking bleiben verwaiste Dateien, alter Code und nicht umgesetzte Cleanup-Entscheidungen nach Sessions übrig.
@@ -522,18 +550,35 @@ Jedes Workpaper folgt festen Regeln. Dies ist das Ergebnis realer Praxiserfahrun
 | Feld                 | Typ     | Beschreibung |
 |----------------------|---------|--------------|
 | `naming_pattern`     | string  | Dateinamen-Template: `{date}-{agent}-{topic}.md` |
-| `template_file`      | string  | Pfad zur Markdown-Vorlage für neue Workpapers |
+| `template_file`      | string  | Pfad zur Markdown-Vorlage für neue Workpapers (Vollversion) |
+| `template_file_quick`| string  | Pfad zu einer Kurzvorlage für kleine Fixes und schnelle Aufgaben |
 | `required_sections`  | string[]| Pflichtabschnitte (siehe unten) |
 | `file_tracking`      | object  | Datei-Protokoll-Regeln |
 | `closing_checklist`  | string[]| Checkliste vor Abschluss |
 | `on_close`           | enum    | `move_to_closed` · `archive` · `delete` |
 
-**Empfohlene Pflichtabschnitte:**
+**Vollversion vs. Kurzvorlage:**
+
+Die Praxiserfahrung zeigt: Nicht jede Session braucht das vollständige 7-Abschnitte-Workpaper. Ein schneller Config-Fix oder eine einzelne Env-Var-Änderung rechtfertigt kein volles Protokoll. AAMS unterstützt daher zwei Vorlagen:
+- **Vollvorlage** (`template_file`) — für substanzielle Arbeitssessions: neue Features, Architekturänderungen, Multi-Datei-Refactorings
+- **Kurzvorlage** (`template_file_quick`) — für kleine Fixes: Config-Änderungen, Einzeldatei-Bearbeitungen, Dependency-Updates
+
+Beide Vorlagen MÜSSEN ein Datei-Protokoll und eine Abschluss-Checkliste enthalten. Die Kurzvorlage komprimiert diese lediglich in ein kompaktes Format.
+
+**Workpaper-Verschachtelung:**
+
+Workpapers sind **flach** — es gibt keine rekursive Verschachtelung. Jede Session produziert genau eine Workpaper-Datei im `workpapers`-Verzeichnis. Sub-Sessions, Fortsetzungen oder Follow-ups erstellen neue Workpaper-Dateien (verlinkt über „Kontext aus vorherigen Sessions"), keine verschachtelten Unterdokumente. Das hält die Struktur scanbar und verhindert tiefe Hierarchien die schwer zu navigieren sind — für Agenten wie für Menschen.
+
+**Workpaper-Metadaten-Header:**
+
+Jedes Workpaper SOLL mit einem Metadaten-Block beginnen der mindestens enthält: Projektname, betroffenes Modul, Status (🚧 IN PROGRESS / ✅ COMPLETED) und Datum. Das ermöglicht Agenten und Menschen das schnelle Triage von Workpapers auf einen Blick.
+
+**Empfohlene Pflichtabschnitte (Vollvorlage):**
 1. **Session Scope** — Ziel der Session, Kontext aus Vorgängern, betroffene Module
-2. **Kontext aus vorherigen Sessions** — offene Punkte, Cleanup-Aufgaben
-3. **Session Overview** — Ausgangssituation, Vorgehen
-4. **Ergebnisse** — was wurde erreicht, mit Code-Snippets und Entscheidungen
-5. **Datei-Protokoll** — erstellt/geändert/gelöscht/Überbleibsel (das Herzstück)
+2. **Session Overview** — Ausgangssituation, Vorgehen, technische Entscheidungen
+3. **Ergebnisse** — was wurde erreicht, mit Code-Snippets und Entscheidungen
+4. **Datei-Protokoll** — erstellt/geändert/verschoben/archiviert/gelöscht/Überbleibsel (das Herzstück)
+5. **Entscheidungen und Begründungen** — Schlüsselentscheidungen mit betrachteten Alternativen
 6. **Next Steps** — konkret: wer, wann, was
 7. **Session-Abschluss Checkliste** — alles geprüft, nichts vergessen
 
@@ -545,6 +590,8 @@ Das Datei-Protokoll ist der wichtigste Abschnitt. Ohne es weiß ein neuer Agent 
 |-------------------------|---------|--------------|
 | `track_created`         | boolean | Jede neu erstellte Datei erfassen (Pfad, Zweck, Status) |
 | `track_modified`        | boolean | Jede geänderte Datei erfassen (Was, Warum) |
+| `track_moved`           | boolean | Jede verschobene Datei erfassen (Von, Nach, Warum) |
+| `track_archived`        | boolean | Jede archivierte Datei erfassen (Warum) |
 | `track_deleted`         | boolean | Jede gelöschte Datei erfassen (Warum, Verifiziert?) |
 | `track_leftover`        | boolean | Bekannte Überbleibsel dokumentieren (Warum nicht geräumt, wer räumt auf) |
 | `track_during_session`  | boolean | Fortlaufend pflegen, nicht erst am Ende |
@@ -659,6 +706,17 @@ session.workpaper_path      → WO Workpapers liegen (abgeleitet von workspace.s
 
 **Konvention:** `_ref` zeigt auf den kanonischen Pfad in `workspace.structure`. Validatoren KÖNNEN auf Konsistenz prüfen, MÜSSEN es aber nicht.
 
+**Empfohlenes Linting:** Damit `_ref` nicht zur dekorativen Annotation verkommt, SOLLTEN Implementierungen einen Lint-Schritt bereitstellen der prüft ob `_ref`-Ziele tatsächlich auflösbar sind:
+
+```bash
+# Geplantes Tooling
+aams-lint --check-refs AGENT.json
+# Prüft: Jedes _ref- und _*_ref-Feld zeigt auf einen gültigen Pfad in workspace.structure
+# Prüft: Der Wert des annotierten Felds stimmt mit dem referenzierten Pfad überein
+```
+
+Ohne eine solche Prüfung riskieren `_ref`-Annotationen nach Refactorings veraltet zu werden.
+
 ---
 
 ## Validierung
@@ -672,6 +730,18 @@ ajv validate -s AGENT_SCHEMA.json -d AGENT.json
 pip install check-jsonschema
 check-jsonschema --schemafile AGENT_SCHEMA.json AGENT.json
 ```
+
+**Schema-Striktheit:**
+
+Das JSON-Schema erzwingt folgendes über einfache Typ-Prüfung hinaus:
+
+| Regel | Wirkung |
+|-------|---------|
+| Root-Level `additionalProperties: false` | Falsch geschriebene Top-Level-Schlüssel (z.B. `"idntity"`) erzeugen einen Validierungsfehler. Nur deklarierte Sektionen und `_`-präfixierte Annotationen sind erlaubt. |
+| `endpoint` bedingt Pflicht | Für Tool-Typen `http`, `cli`, `python`, `shell` ist das Feld `endpoint` Pflicht. Für `mcp` ist es optional (discovery-basiert). |
+| `workpaper_path`-Muster | Muss `{date}`- und `{agent}`-Platzhalter enthalten (`pattern: ".*\\{date\\}.*\\{agent\\}.*"`). |
+| `on_close: "move_to_closed"`-Abhängigkeit | Wenn `workpaper_rules.on_close` auf `"move_to_closed"` gesetzt ist, wird `workspace.structure.workpapers_closed` Pflicht. Ohne definierten Archiv-Pfad ist das Schließ-Verhalten undefiniert. |
+| Konsistente `patternProperties` / `additionalProperties` | Jedes Objekt im Schema verwendet `patternProperties: { "^_": true }` um `_doc`-, `_ref`-, `_note`-Annotationen zu erlauben, und `additionalProperties: false` um unbekannte Felder abzulehnen. |
 
 ---
 
@@ -704,6 +774,19 @@ aams-migrate --from 1.0 --to 2.0 AGENT.json
 | `cloud-v1`        | 🔜 Planned | Cloud-Provider, API-Keys, Rate-Limits |
 | `mesh-v1`         | 🔜 Planned | Multi-Agent-Koordination, Trust-Levels |
 | `edge-v1`         | 💡 Idea | IoT / Edge-Deployment |
+
+**Vorbedingungen für `cloud-v1`:**
+- `local-v1` stabil und in mindestens 3 unabhängigen Implementierungen validiert
+- API-Key-Management-Pattern definiert (Rotation, Scoping, Per-Tool-Keys)
+- Rate-Limiting- und Cost-Tracking-Felder spezifiziert
+- Authentifizierungs-Delegationsmodell (Agent-Level vs. User-Level-Credentials)
+- Netzwerk-Berechtigungsmodell für Cloud-Endpunkte erweitert (CIDR-Bereiche unzureichend)
+
+**Vorbedingungen für `mesh-v1`:**
+- `cloud-v1` finalisiert
+- Trust-Modell definiert (capability-basiert, rollenbasiert oder hybrid)
+- Inter-Agent-Kommunikationsprotokoll spezifiziert (Nachrichtenformat, Routing, Discovery)
+- Konfliktlösung für überlappenden Workspace-Zugriff durch mehrere Agenten
 
 ---
 

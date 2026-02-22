@@ -53,6 +53,46 @@ Kein `npm install`. Kein `pip install`. Kein Setup.
 
 ---
 
+## Funktioniert mit jedem Agenten. Nicht nur einem.
+
+Cursor hat `.cursorrules`. Copilot hat `.github/copilot-instructions.md`. Claude Code hat `CLAUDE.md`. Codex hat `AGENTS.md`. Windsurf hat `.windsurfrules`.
+
+Jedes Tool hat seine eigene Konvention. Wer sich auf eine festlegt, schließt die anderen aus.
+
+AAMS löst das mit einer einzigen Bridge-Datei:
+
+```
+AGENTS.md  ←  wird von allen großen KI-Tools gelesen
+    ↓
+READ-AGENT.md  ←  Projektkontext und Agent Contract
+    ↓
+.agent.json    ←  Bootstrap-Regeln und Workspace-Struktur
+```
+
+Ein Setup. Copilot, Cursor, Claude Code, Codex, Windsurf, Aider, Continue.dev — alle lesen `AGENTS.md`. Von dort erreichen sie denselben Contract. Keine Duplikation. Kein Tool Lock-in.
+
+**Das ist der eigentliche Unterschied.** Nicht die Ordnerstruktur. Die Portabilität.
+
+---
+
+## Welche Datei brauche ich?
+
+Drei Dateien, drei verschiedene Zwecke — nicht drei Versionen derselben Sache:
+
+| Datei | Wer liest sie | Was sie ist |
+|---|---|---|
+| `AGENTS.md` | Jedes KI-Tool (Copilot, Cursor, Claude Code, Codex, Windsurf...) | Dünne Bridge. Zeigt auf READ-AGENT.md. |
+| `.agent.json` | Jeder Agent beim Bootstrap | Minimaler Contract. In jedes Repo legen. |
+| `AGENT.json` | Referenz / vollständiges Manifest | Vollständig annotierte Vorlage. Alle Felder, alle Optionen. |
+
+**Neues Projekt starten?** `.agent.json` kopieren. Fertig.
+
+**Framework oder Harness bauen?** `AGENT.json` als Referenz-Manifest nutzen.
+
+**Mit Copilot, Cursor etc. arbeiten?** `AGENTS.md` im Root reicht — sie routet automatisch zum Rest.
+
+---
+
 ## Das Dreischichten-Dokumentationsmodell
 
 Der eigentliche Kern von AAMS. Drei Schichten, verbindlich:
@@ -64,17 +104,18 @@ Wird beim Sessionstart erstellt, beim Sessionende archiviert. Mit vollständigem
 Stabile Architekturwahrheit. Wird einmal geschrieben, nur bei Architekturentscheidungen angepasst. Nie gelöscht.
 
 **Long-Term Memory** — Was haben wir über die Zeit gelernt?  
-Nach jeder Session wird das Workpaper ins LTM ingested. Session N+1 fragt das LTM bevor sie anfängt. Kein Kontextverlust mehr.
+Nach jeder Session wird das Workpaper ins LTM ingested. Session N+1 fragt das LTM bevor sie anfängt. Jede Session baut auf der letzten auf.
 
 ```
 WORKING/
-├── WHITEPAPER/     ← Stabile Systemwahrheit. Nie löschen.
-├── WORKPAPER/      ← Aktive Session-Arbeit. Pro Session eine Datei.
-│   └── closed/     ← Archivierte abgeschlossene Sessions.
-└── MEMORY/         ← Langzeitgedächtnis. Cross-Session-Kontext.
+├── WHITEPAPER/       ← Stabile Systemwahrheit. Nie löschen.
+├── WORKPAPER/        ← Aktive Session-Arbeit. Pro Session eine Datei.
+│   └── closed/        ← Archivierte abgeschlossene Sessions.
+├── MEMORY/           ← Menschenlesbares Audit-Log. Im Git. Immer.
+└── AGENT-MEMORY/     ← Vektorspeicher (ChromaDB). Abfragbares LTM. In .gitignore.
 ```
 
-Ein guter Entwickler macht das im Kopf. Ein Agent braucht es explizit und persistent.
+Zwei Schichten, beide verbindlich: Das **Audit-Log** (`ltm-index.md`) ist was Menschen lesen und was einen Fresh-Clone überlebt. Der **Vektorspeicher** (`AGENT-MEMORY/`) ist was Agenten effizient abfragen können. Ohne Vektorspeicher degradiert der Kontext nach ~100 Sessions zur Blindheit. Ohne Audit-Log startet ein Fresh-Clone blind.
 
 ---
 
@@ -106,15 +147,15 @@ Langfristiges Ziel: AAMS wird zum de-facto Standard den jeder Agent in jedem Rep
 
 ---
 
-## Der Beweis: AAMS an sich selbst getestet
+## An sich selbst angewendet
 
-Dieses Projekt — das Projekt das den Standard beschreibt — hat ihn heute live angewendet.
+Dieses Projekt — das Projekt das den Standard beschreibt — hat seinen eigenen Workspace von Anfang an mit AAMS aufgebaut.
 
-Eine `.agent.json` gelesen. Struktur angelegt. Erstes Workpaper erstellt. Erstes Whitepaper geschrieben. LTM befüllt. Drei offene GitHub Issues aufgelöst.
+Eine `.agent.json` gelesen. Struktur angelegt. Erstes Workpaper erstellt. Erstes Whitepaper geschrieben. LTM befüllt. Drei offene GitHub Issues aufgelöst. Alles dokumentiert, nachvollziehbar, reproduzierbar.
 
-Alles dokumentiert. Alles nachvollziehbar. Kein Kontextverlust.
+Das ist kein Beweis dass AAMS in Legacy-Repos, mit wechselnden Agenten oder unter echtem Produktionsdruck funktioniert. Es ist ein arbeitendes Beispiel des Workflows — wie eine Session aussieht, was entsteht, was in die nächste Session überlebt.
 
-**Das ist der Beweis.**
+Der echte Test ist dein Projekt.
 
 ---
 
@@ -135,5 +176,5 @@ Alles dokumentiert. Alles nachvollziehbar. Kein Kontextverlust.
 
 ---
 
-*Eine Datei. Jedes Repo. Kein Chaos mehr.*
+*Eine Datei. Jedes Repo. Nie wieder bei Null anfangen.*
 
