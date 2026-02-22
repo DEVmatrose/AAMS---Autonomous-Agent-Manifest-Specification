@@ -35,8 +35,8 @@
 ## Status
 
 - **Initialisiert:** 2026-02-22
-- **Letzter Ingest:** 2026-02-22 (Session-Update)
-- **Einträge gesamt:** 34
+- **Letzter Ingest:** 2026-02-22 (Session-Update — Positioning + WP-002 + P2-Fix)
+- **Einträge gesamt:** 41
 
 ---
 
@@ -80,6 +80,11 @@
 | 034 | 2026-02-22 | SECURITY | `AGENT.json` + `AGENT_SCHEMA.json` + `SPEC.md` + `templates/` + `.gitignore` | Issue #1 umgesetzt: 7 DoD gescored. gitignore_patterns (+8 Secret-Muster), restricted_write für .gitignore, ltm_triggers workpaper_pre_save+scan_secrets, AGENT_SCHEMA output_validation+forbidden_patterns, SPEC.md output_validation-Untersektion + H2 "Absolute Secret Exclusion Policy" (3-Layer-Modell, Risk-Matrix, Pre-Commit-Hook-Implementierung), beide Templates aktualisiert. |
 | 035 | 2026-02-22 | TEMPLATE | `templates/project-analysis-template.md` + `SPEC.md` + `AGENT.json` + `AGENT_SCHEMA.json` + `README.md` | Issue #2 umgesetzt: 5 DoD. Neues Template (9 Sektionen, Tabellen-Format, Affects-Hinweise). SPEC.md: H2 "Before You Write a Manifest" vor Structure Overview. AGENT.json: onboarding Step 0 read_project_analysis (condition: file_exists, priority: mandatory_if_present). AGENT_SCHEMA.json: project_analysis_path optional field. README.md: Verweis für Existing-Project-Onboarding. |
 | 036 | 2026-02-22 | SPEC | `SPEC.md` + `AGENT_SCHEMA.json` + `registry/capabilities.md` | Issue #3 umgesetzt: 8 Lücken. L1: _doc-Convention-Abschnitt. L2: read_project_analysis+file_exists in Enum+Tabelle, priority-Feld. L3: Template-Variable-Tabelle ({date}=YYYY-MM-DD, {agent}=kebab, {topic}=kebab). L4: 7 Standard-Closing-Checklist-Items. L5: fallback_providers (Array-Pos=Priorität) in SPEC+Schema. L6: bereits implementiert (template_file). L7: LTM-Migration-Prozedur (5 Schritte, _migration-Annotation, ltm-rebuild.py-Verweis). L8: registry/capabilities.md erstellt (9 Kategorien, 30+ Capabilities, URL in SPEC aktualisiert). |
+| 037 | 2026-02-22 | TOOL | `WORKING/TOOLS/_selfcheck.py` | 34-Check Automated Self-Validation Tool. JSON-Syntax, Schema-Validierung, Pfade, Workpaper-Status, Git-Cleanliness, SPEC-Dokumentation, Schema-Vollständigkeit. Alle 34 Checks grün. |
+| 038 | 2026-02-22 | POSITIONING | `SPEC.md` | Positionierungsabschnitt nach Philosophy eingefügt: "AAMS does not solve the LTM problem. It creates the scaffolding that makes LTM solutions pluggable." Extension-Point `memory.long_term.backend` dokumentiert. |
+| 039 | 2026-02-22 | CONFIG | `.agent.json` | P2-Fix: `ltm_store_backend` → `ltm_store_backend_recommended` + `_ltm_store_backend_note`. Zero-dependency-Konsistenz wiederhergestellt: ChromaDB ist Empfehlung, kein implizites Requirement. |
+| 040 | 2026-02-22 | WHITEPAPER | `WORKING/WHITEPAPER/WP-002-related-work.md` | Related Work Whitepaper erstellt. AAMS vs. MemGPT/Letta, LangChain Memory, DVC, FIPA ACL, `.cursorrules`/`CLAUDE.md`/per-tool-files. Gap-Analyse: 8 unique AAMS capabilities. Positioning: "the interface layer on top of which those systems operate." |
+| 041 | 2026-02-22 | SESSION | `WORKING/WORKPAPER/closed/2026-02-22-review-analyse-und-forschungsebene.md` | Review-Analyse Session abgeschlossen. Commit 0ad66d6. CLOSED + archiviert. |
 
 ---
 
