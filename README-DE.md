@@ -3,6 +3,10 @@
 > **AAMS — Autonomous Agent Manifest Specification**  
 > `README.md` ist für Menschen. `AGENT.json` ist für Maschinen.
 
+**[→ devmatrose.github.io/Autonomous-Agent-Manifest-Specification](https://devmatrose.github.io/Autonomous-Agent-Manifest-Specification/)**
+
+---
+
 Wer auf hoher See überleben will, braucht zwei Dinge: eine gute Crew — und eine Karte, die jeder lesen kann. Auch der neue Matrose. Auch die Ablösung in der Nachtschicht. Auch eine KI.
 
 Genau das ist AAMS — die Autonomous Agent Manifest Specification.
