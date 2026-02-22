@@ -35,8 +35,8 @@
 ## Status
 
 - **Initialisiert:** 2026-02-22
-- **Letzter Ingest:** 2026-02-22 (Session-Update — Positioning + WP-002 + P2-Fix)
-- **Einträge gesamt:** 41
+- **Letzter Ingest:** 2026-02-22 (Rename DEVmatrose/AAMS)
+- **Einträge gesamt:** 42
 
 ---
 
@@ -85,6 +85,7 @@
 | 039 | 2026-02-22 | CONFIG | `.agent.json` | P2-Fix: `ltm_store_backend` → `ltm_store_backend_recommended` + `_ltm_store_backend_note`. Zero-dependency-Konsistenz wiederhergestellt: ChromaDB ist Empfehlung, kein implizites Requirement. |
 | 040 | 2026-02-22 | WHITEPAPER | `WORKING/WHITEPAPER/WP-002-related-work.md` | Related Work Whitepaper erstellt. AAMS vs. MemGPT/Letta, LangChain Memory, DVC, FIPA ACL, `.cursorrules`/`CLAUDE.md`/per-tool-files. Gap-Analyse: 8 unique AAMS capabilities. Positioning: "the interface layer on top of which those systems operate." |
 | 041 | 2026-02-22 | SESSION | `WORKING/WORKPAPER/closed/2026-02-22-review-analyse-und-forschungsebene.md` | Review-Analyse Session abgeschlossen. Commit 0ad66d6. CLOSED + archiviert. |
+| 042 | 2026-02-22 | RENAME | `AGENT.json` + `docs/index.html` + `registry/capabilities.md` + `README.md` + `README-DE.md` | Repo umbenannt zu `DEVmatrose/AAMS`. Alle URLs aktualisiert: AGENT.json (3x), index.html (curl + footer + proof + repo-url), capabilities.md, README.md + README-DE.md (GitHub Pages → devmatrose.github.io/AAMS). git remote aktualisiert. Commit 5aa8f8c. |
 
 ---
 
