@@ -93,6 +93,26 @@ Core idea:
 
 ---
 
+### LTM Commands — mandatory Python paths
+
+> ⚠️ **NICHT `wsl python3`, `python`, oder System-Python verwenden.**  
+> Nur das `.venv` im Workspace-Root enthält `chromadb` und `sentence-transformers`.
+
+**Query (Sessionstart — vor jedem neuen Workpaper):**
+```powershell
+# Windows PowerShell — immer so:
+.venv\Scripts\python.exe WORKING\AGENT-MEMORY\query.py "<Session-Thema>"
+```
+
+**Ingest (Sessionende — nach Workpaper-Abschluss):**
+```powershell
+.venv\Scripts\python.exe WORKING\AGENT-MEMORY\ingest.py
+```
+
+**Warum:** Jeder andere Interpreter (WSL `python3`, System-Python, Conda) hat `chromadb` nicht installiert und darf nicht verwendet werden. Kein `pip install` in fremde Environments.
+
+---
+
 ## Key Files
 
 | File | Role |
