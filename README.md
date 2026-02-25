@@ -11,6 +11,26 @@
 
 ---
 
+## Start in 2 Steps
+
+**Step 1 — Drop `.agent.json` into your repo:**
+
+```bash
+curl -sO https://raw.githubusercontent.com/DEVmatrose/AAMS/main/.agent.json
+```
+
+**Step 2 — Tell your agent:**
+
+```
+Read .agent.json and execute the full agent_contract.on_first_entry. Start immediately. No confirmation needed.
+```
+
+The agent creates the `WORKING/` structure, scans the repo, writes the first workpaper, and indexes into LTM. Works with Cursor, Claude Code, Copilot, Aider, Codex, Windsurf, Continue.dev.
+
+→ Extended variants and session-start prompt: [`prompts/bootstrap.md`](./prompts/bootstrap.md)
+
+---
+
 If you want to survive on the open sea, you need two things: a good crew — and a map everyone can read. The new deckhand. The night watch relief. The AI.
 
 That's exactly what AAMS is — the Autonomous Agent Manifest Specification.

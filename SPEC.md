@@ -610,6 +610,24 @@ flowchart TD
 | `create_first_workpaper`| Create onboarding protocol with scan results |
 | `custom`               | Project-specific action (described in `description`) |
 
+**`index_ltm` — Setup and Fallback:**
+
+The `index_ltm` step requires a local vector store. AAMS recommends **ChromaDB** (open source, zero API cost, per-workspace isolation).
+
+Setup (one-time, from repo root):
+```bash
+pip install chromadb
+```
+
+Each `WORKING/AGENT-MEMORY/` directory is an isolated ChromaDB instance for that workspace. Do not share instances across projects.
+
+If ChromaDB is not installed when `index_ltm` executes, the agent SHOULD:
+1. Log a warning: `"LTM backend not available — index_ltm skipped"`
+2. Continue with remaining onboarding steps
+3. Note the gap in the first workpaper: `"LTM not indexed — ChromaDB missing. Run: pip install chromadb"`
+
+The fallback is `WORKING/MEMORY/ltm-index.md` — a plain Markdown audit log that remains queryable by any agent (read the file). It is not a vector store, but it is always present and never requires installation.
+
 **Conditional Execution (`condition`):**
 
 Onboarding steps may include an optional `condition` field that controls execution:
@@ -664,6 +682,12 @@ Step 7: create_first_workpaper → ALL collected results written to workpaper fi
 2. **Living document:** The agent creates the workpaper file early (at step 3) and appends to it as subsequent steps complete. This is acceptable — implementations MAY reorder or combine steps — but the workpaper may be incomplete if a later step fails.
 
 Both strategies are valid. The spec defines **what** is produced, not **when** the file is written to disk.
+
+> **⚠️ Note for agents without persistent working memory:** LLMs that do not retain state between tool calls SHOULD use the "living document" strategy — create the workpaper file at step 3 and append to it incrementally. Do not rely on in-context buffering across many tool calls.
+
+**`WORKING/` location:** `WORKING/` is always created **relative to the repo root** — the directory containing `.agent.json`. If `.agent.json` is at `/my-project/.agent.json`, then `WORKING/` is at `/my-project/WORKING/`. Never create `WORKING/` outside the repo root.
+
+**Template files:** The `template_file` and `template_file_quick` paths in `.agent.json` reference files from the AAMS repository (`templates/workpaper-template.md`, `templates/workpaper-template-quick.md`). On first bootstrap of a new repo, these templates must be copied into the target repo, or the agent MAY generate a minimal workpaper inline if the template file is not present.
 
 #### `workpaper_rules` — Session Hygiene
 

@@ -36,7 +36,26 @@
 
 ---
 
-## 2. Session Overview
+## 2. Running Log ⚡
+
+> **Live during the session — mandatory.**  
+> One entry per completed step. Append-only. Do NOT wait until session end.
+> After every deployment, fix, configuration change, or decision — output this block unprompted:
+>
+> ```
+> 📋 Workpaper-Checkpoint
+> - Changed: `<file>` — <what> (<why>)
+> - Decision: <what was decided and why>
+> - Abandoned: <what was discarded> (if applicable)
+> ```
+
+| Time | What | File / Area | Decision / Reason |
+|------|------|-------------|-------------------|
+| | | | |
+
+---
+
+## 3. Session Overview
 
 ### Starting Situation
 <!-- Where does the project stand now? What is the current state? -->
@@ -53,7 +72,7 @@
 
 ---
 
-## 3. Results
+## 4. Results
 
 <!-- What was achieved? Code snippets, configurations, decisions. -->
 
@@ -67,7 +86,7 @@
 
 ---
 
-## 4. File Protocol
+## 5. File Protocol
 
 > **The heart of session hygiene.** Maintain continuously, not just at the end.
 
@@ -103,7 +122,7 @@
 
 ---
 
-## 5. Decisions and Rationale
+## 6. Decisions and Rationale
 
 | Decision | Rationale | Alternatives considered |
 |----------|-----------|----------------------|
@@ -111,7 +130,7 @@
 
 ---
 
-## 6. Next Steps
+## 7. Next Steps
 
 > **Concrete formulation:** Who, when, what. Not "sometime".
 
@@ -121,7 +140,7 @@
 
 ---
 
-## 7. Session Closing Checklist
+## 8. Session Closing Checklist
 
 - [ ] File protocol complete (created/modified/moved/archived/deleted)?
 - [ ] No temporary test files in repo (`test-*`, `debug-*`, `temp-*`)?
