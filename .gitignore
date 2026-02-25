@@ -27,3 +27,6 @@ WORKING/MEMORY/*.db
 *.pem
 *.key
 secrets.*
+
+docs/*.PDF
+docs/*.pdf
