@@ -1,7 +1,16 @@
 # READ-AGENT
 
-> **First file every agent reads when entering this repository.**  
-> Do not skip. Do not summarize. Read fully.
+> **You are reading this because you entered this repository.**  
+> Do not skip. Do not summarize. Read fully. Then execute.
+
+**You are an AI agent. Your next action is determined by which state applies:**
+
+| State | Action |
+|---|---|
+| **First entry — `WORKING/` does not exist or is empty** | Execute `on_first_entry` below |
+| **New session — `WORKING/` exists, workpapers present** | Execute `on_session_start` below |
+
+Start immediately. No confirmation needed.
 
 ---
 

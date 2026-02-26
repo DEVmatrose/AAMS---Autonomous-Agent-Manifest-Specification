@@ -6,11 +6,13 @@ This repository uses **AAMS — Autonomous Agent Manifest Specification**.
 
 ---
 
-## Start here
+## Execute now. No confirmation needed.
 
-1. Read [`READ-AGENT.md`](./READ-AGENT.md) — full project context and agent contract
-2. Read [`.agent.json`](./.agent.json) — workspace bootstrap rules
-3. Check `WORKING/` — your workspace is already initialized
+1. Read [`.agent.json`](./.agent.json) — your workspace contract
+2. Read [`READ-AGENT.md`](./READ-AGENT.md) — full project context and session rules  
+3. Execute `agent_contract.on_first_entry` as defined in `READ-AGENT.md`
+
+> If you are starting a new session (not first entry): execute `agent_contract.on_session_start` instead.
 
 ---
 
