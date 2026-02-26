@@ -2,7 +2,7 @@
 
 **Session:** 2026-02-26
 **Agent:** GitHub Copilot (Claude Sonnet 4.6)
-**Status:** OPEN
+**Status:** CLOSED
 **Typ:** Review / UX-Fix / Strukturoptimierung
 
 ---
@@ -86,6 +86,9 @@ Das ist ein konzeptuelles Problem das eigene Whitepaper-Arbeit braucht. → Kand
 - [x] **Signal-Redesign:** `READ-AGENT.md` Header → State-Tabelle (first entry vs. session start) + sofortiger Handlungsaufruf
 - [x] **README:** Neuer Abschnitt "What AAMS Can and Cannot Do" — ehrliche Darstellung autonome Agenten (works) vs. Chat-Agenten (user prompt nötig), 3-Zeilen-Tabelle, offenes Problem + aktuelle Arbeitsrichtungen
 - [x] **docs/index.html:** AI-Agent-Block im `<head>` — HTML-Kommentare (imperativ) + 4 strukturierte `<meta>`-Tags mit `aams-`-Namespace (`aams-agent-contract`, `aams-entry-point`, `aams-action`, `aams-spec`)
+- [x] LTM-Ingest: `2026-02-26-entry-point-klarheit.md` → 9 Chunks
+- [x] LTM-Ingest: `2026-02-24-diary-layer-konzept.md` → 13 Chunks
+- [x] Git commit `42df943` + push → main
 
 ---
 
