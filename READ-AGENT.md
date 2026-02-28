@@ -110,23 +110,33 @@ Core idea:
 
 ---
 
-### LTM Commands — mandatory Python paths
+### LTM Commands — two tracks
+
+#### Track A — Markdown-only (default, zero dependencies)
+
+No Python, no ChromaDB needed. Works on any fresh repo.
+
+- **Query:** Read `WORKING/MEMORY/ltm-index.md` directly — scan for session topic
+- **Ingest:** Append new entry to `WORKING/MEMORY/ltm-index.md` at session end
+
+> Use Track A when: no Python environment exists, repo is freshly bootstrapped, or `ltm_mode: "markdown"` in `.agent.json`.
+
+#### Track B — Vector store (ChromaDB, requires Python)
 
 > ⚠️ **NICHT `wsl python3`, `python`, oder System-Python verwenden.**  
-> Nur das `.venv` im Workspace-Root enthält `chromadb` und `sentence-transformers`.
+> Nur das `.venv` im Workspace-Root enthält `chromadb`.
 
-**Query (Sessionstart — vor jedem neuen Workpaper):**
+**Query (Sessionstart):**
 ```powershell
-# Windows PowerShell — immer so:
 .venv\Scripts\python.exe WORKING\AGENT-MEMORY\query.py "<Session-Thema>"
 ```
 
-**Ingest (Sessionende — nach Workpaper-Abschluss):**
+**Ingest (Sessionende):**
 ```powershell
 .venv\Scripts\python.exe WORKING\AGENT-MEMORY\ingest.py
 ```
 
-**Warum:** Jeder andere Interpreter (WSL `python3`, System-Python, Conda) hat `chromadb` nicht installiert und darf nicht verwendet werden. Kein `pip install` in fremde Environments.
+> Use Track B when: `.venv` with `chromadb` exists and `ltm_mode: "vector"` in `.agent.json`.
 
 ---
 

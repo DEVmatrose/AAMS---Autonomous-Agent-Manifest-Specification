@@ -49,6 +49,8 @@
       "ltm_markdown_threshold": 100,
       "ltm_warning_at": 90,
       "ltm_exceeded_behavior": "load_last_20_only",
+      "ltm_mode": "markdown",
+      "_ltm_mode_doc": "'markdown' = ltm-index.md only, zero dependencies, works everywhere. 'vector' = ChromaDB + Python required. Default: 'markdown'. Switch to 'vector' once Python env is set up.",
       "ltm_store": "./WORKING/AGENT-MEMORY",
       "_ltm_store_backend_note": "OPTIONAL. .agent.json is zero-dependency by design. The backend below is a recommendation, not a requirement. Remove if you don't want ChromaDB. The markdown audit log (ltm_audit_log) works without any vector store.",
       "ltm_store_backend_recommended": "chroma",
