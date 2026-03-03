@@ -3,7 +3,7 @@
 
 - **ID:** WP-001
 - **Erstellt:** 2026-02-22
-- **Letztes Update:** 2026-02-22
+- **Letztes Update:** 2026-03-03
 - **Status:** Aktiv
 - **Typ:** Architektur / Projektverständnis
 
@@ -64,9 +64,9 @@ Kann in jedes Repo ohne den vollen Manifest gelegt werden.
 
 ---
 
-## 4. Dreischichten-Dokumentationsmodell
+## 4. Vier-Schichten-Dokumentationsmodell
 
-Das Herzstück der AAMS-Architektur:
+Das Herzstück der AAMS-Architektur (Stand: 2026-03-03):
 
 ```
 WORKING/
@@ -77,18 +77,33 @@ WORKING/
 │                   Pro Session eine Datei. Nach Abschluss → closed/
 │   └── closed/
 │
+├── DIARY/          Temporal Context Layer — Warum haben wir das so entschieden?
+│                   Chronologisch, narrativ. Monatsweise (2026-03.md).
+│                   Für strategische Motive, Blocker, reflexive Erkenntnisse.
+│
 └── MEMORY/         Langzeitgedächtnis — Was haben wir gelernt?
-                    Cross-Session-Kontext. Ingest nach jeder Session.
+                    Dual-Track: ltm-index.md (Audit-Log, in Git) +
+                    AGENT-MEMORY/ (ChromaDB-Vektorstore, in .gitignore)
 ```
 
-**Warum drei Schichten?**
+| Schicht | Zeitdimension | Charakter | Pflicht |
+|---------|--------------|-----------|--------|
+| Whitepaper | Langfristig | Normativ / strukturell | Ja |
+| Workpaper | Kurzfristig (Session) | Operativ / iterativ | Ja |
+| Diary | Chronologisch | Narrativ / reflexiv | Ja |
+| Memory (LTM) | Cross-Session | Auditierbar + querybar | Ja |
+
+**Warum vier Schichten?**
 
 Ein menschlicher Entwickler hat:
 - Notizblock (Workpaper) — was er gerade macht
 - Architektur-Doku (Whitepaper) — wie das System aufgebaut ist
+- Tagebuch / Entscheidungslog (Diary) — warum so entschieden wurde
 - Erfahrung / Gedächtnis (LTM) — was er über die Zeit gelernt hat
 
 Ein Agent braucht dasselbe, aber explizit und persistent.
+
+**Diary Layer** (Temporal Context Layer) wurde 2026-02-24 als verpflichtender dritter Dokumentations-Layer eingeführt. Der Gap: Entscheidungen entstehen *zwischen* Workpaper und Whitepaper. Strategische Motive verschwinden. Das Diary schließt diesen Gap — chronologisch, monatsweise, max. 10 Zeilen pro Eintrag.
 
 ---
 
@@ -133,16 +148,22 @@ Langfristiges Ziel: AAMS wird zu einem **de-facto Standard** den jedes Agenten-F
 
 ---
 
-## 8. Aktueller Stand (2026-02-22)
+## 8. Aktueller Stand (2026-03-03)
 
 | Bereich | Status |
 |---|---|
-| Spezifikation (SPEC.md / SPEC-DE.md) | Vollständig, Draft |
+| Spezifikation (SPEC.md / SPEC-DE.md) | Vollständig, AAMS/1.0 |
 | Referenz-Manifest (AGENT.json) | Vollständig, annotiert |
 | JSON Schema (AGENT_SCHEMA.json) | Vollständig |
-| Minimal-Bootstrap (.agent.json) | Neu erstellt |
-| READ-AGENT.md | Neu erstellt |
-| WORKING/-Struktur | Angelegt, aktiv |
-| Erstes Workpaper | Vorhanden |
-| LTM | Initial befüllt |
-| GitHub Issues #1-#3 | Adressiert, zur Schließung bereit |
+| Minimal-Bootstrap (.agent.json) | Aktiv, AAMS-MINI/1.0 |
+| READ-AGENT.md | Aktiv — dual-track LTM, Diary Layer, AAMS-MINI vs. full |
+| AGENTS.md | Aktiv — auto-read bridge für alle major Agent-Tools |
+| WORKING/-Struktur | Vollständig aktiv inkl. DIARY/ |
+| Workpapers (archived) | 14+ in WORKPAPER/closed/ |
+| Whitepapers | 2 (WP-001, WP-002) |
+| LTM | 58 Einträge ltm-index.md + 114 Chunks ChromaDB |
+| GitHub Issues #1-#13 | Geschlossen |
+| GitHub Issues #14-#18 | Offen — aktuell in Bearbeitung |
+| GitHub Pages | Live — devmatrose.github.io/AAMS |
+| Field Report | Luna-1 (#17): 4 Monate Produktionseinsatz bestätigt |
+| AAMS-MINI | Eingeführt: ltm_mode markdown (Track A) + vector (Track B) |

@@ -49,9 +49,9 @@ WORKING/
 
 ## Full specification
 
-- [`SPEC.md`](./SPEC.md) — technical reference
-- [`AGENT.json`](./AGENT.json) — full annotated manifest
-- [`AGENT_SCHEMA.json`](./AGENT_SCHEMA.json) — JSON Schema for validation
+- [`reference/SPEC.md`](./reference/SPEC.md) — technical reference
+- [`reference/AGENT.json`](./reference/AGENT.json) — full annotated manifest
+- [`reference/AGENT_SCHEMA.json`](./reference/AGENT_SCHEMA.json) — JSON Schema for validation
 
 ---
 

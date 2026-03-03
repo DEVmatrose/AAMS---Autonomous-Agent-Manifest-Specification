@@ -145,10 +145,10 @@ No Python, no ChromaDB needed. Works on any fresh repo.
 | File | Role |
 |---|---|
 | `.agent.json` | Minimal bootstrap contract (portable, drop into any repo) |
-| `AGENT.json` | Full agent manifest with runtime, permissions, skills |
-| `AGENT_SCHEMA.json` | JSON Schema for validating AGENT.json |
-| `SPEC.md` | Full specification (English) |
-| `SPEC-DE.md` | Full specification (German) |
+| `reference/AGENT.json` | Full agent manifest with runtime, permissions, skills |
+| `reference/AGENT_SCHEMA.json` | JSON Schema for validating AGENT.json |
+| `reference/SPEC.md` | Full specification (English) |
+| `reference/SPEC-DE.md` | Full specification (German) |
 
 ---
 

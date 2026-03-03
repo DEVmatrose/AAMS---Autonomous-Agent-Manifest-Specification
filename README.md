@@ -40,7 +40,7 @@ Read .agent.json and execute the full agent_contract.on_first_entry. Start immed
 
 The agent creates the `WORKING/` structure, scans the repo, writes the first workpaper, and indexes into LTM. Works with Cursor, Claude Code, Copilot, Aider, Codex, Windsurf, Continue.dev.
 
-→ Extended variants and session-start prompt: [`prompts/bootstrap.md`](./prompts/bootstrap.md)
+→ Extended variants and session-start prompt: [`reference/prompts/bootstrap.md`](./reference/prompts/bootstrap.md)
 
 ---
 
@@ -130,22 +130,22 @@ That's `.agent.json`. Drop it into your repo root. Done. The rest is reference m
 |---|---|---|
 | `.agent.json` | **Everyone** | The one file you actually need. Drop into any repo. |
 | `AGENTS.md` | AI tools auto-reading on entry | Bridge file. Routes Copilot, Cursor, Claude Code, Codex, Windsurf to the agent contract. |
-| `AGENT.json` | Framework builders / harness devs | Fully annotated reference manifest. All fields, all options, all defaults. |
-| `SPEC.md` | Implementers / contributors | The normative specification. 1,070+ lines. Every field defined. |
+| `reference/AGENT.json` | Framework builders / harness devs | Fully annotated reference manifest. All fields, all options, all defaults. |
+| `reference/SPEC.md` | Implementers / contributors | The normative specification. 1,070+ lines. Every field defined. |
 
 **Starting a new project?** `.agent.json`. Done.
 
-**Onboarding an existing project?** Fill out `templates/project-analysis-template.md` first — it captures repo topology, existing tools, LTM state, and conventions before you write a single line of manifest.
+**Onboarding an existing project?** Fill out `reference/templates/project-analysis-template.md` first — it captures repo topology, existing tools, LTM state, and conventions before you write a single line of manifest.
 
-**Building a framework or harness?** Use `AGENT.json` as the reference manifest.
+**Building a framework or harness?** Use `reference/AGENT.json` as the reference manifest.
 
 **Working with Copilot, Cursor, etc.?** `AGENTS.md` in the root is all you need — it routes them to the rest automatically.
 
 ---
 
-## The Three-Layer Documentation Model
+## The Four-Layer Documentation Model
 
-The actual core of AAMS. Three layers, mandatory:
+The actual core of AAMS. Four layers, mandatory:
 
 **Workpaper** — What am I doing in this session?  
 Created at session start, archived at session end. With a complete file protocol: what was created, changed, deleted.
@@ -161,11 +161,14 @@ WORKING/
 ├── WHITEPAPER/       ← Stable system truth. Never delete.
 ├── WORKPAPER/        ← Active session work. One file per session.
 │   └── closed/        ← Archived completed sessions.
+├── DIARY/            ← Temporal context. Why did we decide this? Monthly files.
 ├── MEMORY/           ← Human-readable audit log. In Git. Always.
 └── AGENT-MEMORY/     ← Vector store (ChromaDB). Queryable LTM. In .gitignore.
 ```
 
-Two layers, both mandatory: the **audit log** (`ltm-index.md`) is what humans read and what survives a fresh clone. The **vector store** (`AGENT-MEMORY/`) is what agents query efficiently. Without the vector store, context degrades after ~100 sessions. Without the audit log, a fresh clone starts blind.
+**Diary layer** — the gap between workpaper and whitepaper. Decisions have context that's too narrative for a whitepaper and too strategic for a workpaper. The diary preserves that — chronologically, monthly, max 10 lines per entry.
+
+Two LTM tracks, both mandatory: the **audit log** (`ltm-index.md`) is what humans read and what survives a fresh clone. The **vector store** (`AGENT-MEMORY/`) is what agents query efficiently. Without the vector store, context degrades after ~100 sessions. Without the audit log, a fresh clone starts blind.
 
 ---
 
@@ -208,10 +211,10 @@ Copilot in chat mode, ChatGPT, or any assistant that responds to user questions 
 The long-term goal is a mechanism that causes any agent — chat or autonomous — to recognize an AAMS repo and execute the contract without requiring a special user prompt. This is an open research and design problem. Current directions under investigation:
 
 - System prompt injection via `.github/copilot-instructions.md` and equivalent per-tool files
-- A bootstrap prompt library ([`prompts/bootstrap.md`](./prompts/bootstrap.md)) for users to hand to chat agents
+- A bootstrap prompt library ([`reference/prompts/bootstrap.md`](./reference/prompts/bootstrap.md)) for users to hand to chat agents
 - Standardized `on_entry` signals that agent runtimes could recognize natively
 
-Until that problem is solved: for chat agents, the user prompt from [`prompts/bootstrap.md`](./prompts/bootstrap.md) is the bridge.
+Until that problem is solved: for chat agents, the user prompt from [`reference/prompts/bootstrap.md`](./reference/prompts/bootstrap.md) is the bridge.
 
 ---
 
@@ -255,10 +258,10 @@ The vector store (`WORKING/AGENT-MEMORY/`) is excluded via `.gitignore` — it's
 
 | File | Content |
 |---|---|
-| [`SPEC.md`](./SPEC.md) | Full technical reference |
-| [`AGENT.json`](./AGENT.json) | Annotated reference manifest |
+| [`reference/SPEC.md`](./reference/SPEC.md) | Full technical reference |
+| [`reference/AGENT.json`](./reference/AGENT.json) | Annotated reference manifest |
 | [`.agent.json`](./.agent.json) | Minimal bootstrap contract |
-| [`AGENT_SCHEMA.json`](./AGENT_SCHEMA.json) | JSON Schema for validation |
+| [`reference/AGENT_SCHEMA.json`](./reference/AGENT_SCHEMA.json) | JSON Schema for validation |
 
 ---
 
